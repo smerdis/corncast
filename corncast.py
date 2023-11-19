@@ -33,7 +33,7 @@ class Location(object):
         
         Parameters
         ----------
-        noaa : object
+        noaa : noaa_sdk.NOAA
             noaa_sdk.NOAA api wrapper object
         start : datetime
             beginning of time period we want observations from
@@ -42,3 +42,32 @@ class Location(object):
         """
 
         return noaa.get_observations_by_lat_lon(self._lat, self._lon, start.strftime('%Y-%m-%d %H:%M:%S'), end.strftime('%Y-%m-%d %H:%M:%S'))
+    
+def reduce_obs(obs_df):
+    """Given a data frame of weather observations from the NOAA API, calculate quantities of interest.
+    
+    Parameters
+    ----------
+    obs_df : pandas.DataFrame
+        Data Frame wrapping raw observations from NOAA API
+
+    Returns
+    -------
+    df_reduced : pandas.DataFrame
+        Data Frame with all the same rows and only the relevant columns retained
+    """
+
+    keep_cols = ['station', 'timestamp']
+    keep_cols.extend([col for col in obs_df.columns if 'emperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col])
+    df_reduced = obs_df[keep_cols]
+    return df_reduced
+
+def calc_max_temp(obs_df, col='temperature.value'):
+    """Return the maximum temperature in a data frame of weather observations."""
+
+    return obs_df[col].max()
+
+def calc_min_temp(obs_df, col='temperature.value'):
+    """Return the minimum temperature in a data frame of weather observations."""
+
+    return obs_df[col].min()
