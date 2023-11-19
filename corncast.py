@@ -58,7 +58,7 @@ def reduce_obs(obs_df):
     """
 
     keep_cols = ['station', 'timestamp']
-    keep_cols.extend([col for col in obs_df.columns if 'emperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col])
+    keep_cols.extend([col for col in obs_df.columns if 'temperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col])
     df_reduced = obs_df[keep_cols]
     return df_reduced
 
