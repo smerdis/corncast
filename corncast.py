@@ -71,3 +71,12 @@ def calc_min_temp(obs_df, col='temperature.value'):
     """Return the minimum temperature in a data frame of weather observations."""
 
     return obs_df[col].min()
+
+def freezethaw_yn(obs_df):
+    """Was there a freeze-thaw cycle in this dataset of observations?"""
+
+    if calc_max_temp(obs_df) > 0 and calc_min_temp(obs_df) < 0:
+        return True
+    
+    else:
+        return False
