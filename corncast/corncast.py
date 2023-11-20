@@ -149,14 +149,16 @@ def corn_forecast(loc):
     start = now-obs_period
     end = now
 
+    tcol = 'temperature.value'
+
     df = make_obs_df(loc, start, end)
     station_name = df.station.iloc[0]
     # df.info()
     print(df.date.iloc[0], df.datehour.iloc[0])
 
     # Smooth data - take the mean of each hour's observations and return just those values (1 per hour)
-    hour_means = df.groupby(['datehour'])['temperature.value'].mean().reset_index()
-    ax = plot_obs(hour_means[::-1], x='datehour', y='temperature.value')
+    hour_means = df.groupby(['datehour'])[tcol].mean().reset_index()
+    ax = plot_obs(hour_means[::-1], x='datehour', y=tcol)
     ax.set_title(f"{station_name} observations")
     plt.show()
     plt.close('all')
@@ -165,6 +167,3 @@ def corn_forecast(loc):
     day_df = df.groupby(['date'], as_index=False).apply(lambda x: pd.Series([freezethaw_yn(x)], index=['freeze_thaw']))
     day_df.info()
     print(f"Freeze-thaw cycle detected on {day_df.freeze_thaw.sum()} days.")
-    
-    disp_cols = ['station', 'timestamp', 'temperature.value', 'dewpoint.value', 'precipitationLast3Hours.value']
-    return df[disp_cols]
