@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import matplotlib.dates as mdates
 
-from dateutil import parser, tz
-from datetime import datetime, date, time, timedelta
+from dateutil import tz
+from datetime import datetime, timedelta
 
 from noaa_sdk import NOAA
 
@@ -56,7 +56,7 @@ class Location(object):
         return noaa.get_observations_by_lat_lon(self._lat, self._lon, start.strftime('%Y-%m-%d %H:%M:%S'), end.strftime('%Y-%m-%d %H:%M:%S'))
     
 def reduce_obs(obs_df):
-    """Given a data frame of weather observations from the NOAA API, calculate quantities of interest.
+    """Given a data frame of weather observations from the NOAA API, return only the columns we want.
     
     Parameters
     ----------
@@ -70,7 +70,7 @@ def reduce_obs(obs_df):
     """
 
     keep_cols = ['station', 'timestamp']
-    keep_cols.extend([col for col in obs_df.columns if 'temperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col])
+    keep_cols.extend([col for col in obs_df.columns if ('temperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col) and 'qualityControl' not in col])
     df_reduced = obs_df[keep_cols]
     return df_reduced
 
@@ -92,7 +92,49 @@ def freezethaw_yn(obs_df):
     
     else:
         return False
+
+def plot_obs(df, **kwargs):
+    """Make a line plot of temperature observations.
     
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Data Frame of observations from NOAA API.
+    """
+
+    ax = sns.lineplot(data=df, **kwargs)
+    #locator = ticker.MultipleLocator(base=20)
+    locator = mdates.HourLocator(byhour=[6,18])
+    ax.xaxis.set_major_locator(locator)
+    ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
+    ax.set_xlabel("Date and time")
+    ax.set_ylabel("Air Temperature (C)")
+    return ax
+
+def make_obs_df(loc, start, end):
+    """Make a data frame of observations for a location
+
+    Parameters
+    ----------
+    loc : Location
+        Location to fetch observations for
+    start : datetime
+        beginning of time period we want observations from
+    end : datetime
+        end of time period we want observations from
+    """
+
+    n = NOAA(user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True)
+    obs_df_full = pd.concat([pd.json_normalize(o) for o in loc.get_obs(n, start, end)], ignore_index=True)
+    # get rid of extraneous columns and rows with no temperature value
+    obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=['temperature.value'])
+    obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp)
+    obs_df_reduced['date'] = obs_df_reduced.timestamp.dt.floor('1D')
+    obs_df_reduced['datehour'] = obs_df_reduced.timestamp.dt.floor('1H')
+    # ensure we are only returning obs from one station
+    assert(len(obs_df_reduced.station.unique())==1)
+    return obs_df_reduced
+
 def corn_forecast(loc):
     """Corn Forecast function.
     
@@ -102,34 +144,27 @@ def corn_forecast(loc):
         Location this corn forecast is for
     """
 
-    n = NOAA(user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True)
-
-    now = datetime.now(tz=tz.UTC)
+    now = datetime.now()
     obs_period = timedelta(days=5)
     start = now-obs_period
     end = now
 
-    obs_list = [pd.json_normalize(o) for o in loc.get_obs(n, start, end)]
-    obs_df_full = pd.concat(obs_list, ignore_index=True)
-    obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=['temperature.value'])
-    obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp)
-    assert(len(obs_df_reduced.station.unique())==1)
-    station_name = obs_df_reduced.station.iloc[0]
+    df = make_obs_df(loc, start, end)
+    station_name = df.station.iloc[0]
+    # df.info()
+    print(df.date.iloc[0], df.datehour.iloc[0])
 
-    disp_cols = ['station', 'timestamp', 'temperature.value', 'dewpoint.value', 'precipitationLast3Hours.value']
-
-    df = obs_df_reduced
-    sns.lineplot(data=df[::-1], x='timestamp', y='temperature.value')
-    ax = plt.gca()
-    #locator = ticker.MultipleLocator(base=20)
-    locator = mdates.HourLocator(byhour=[6,18])
-    ax.xaxis.set_major_locator(locator)
-    ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
-    ax.set_xlabel("Date and time")
-    ax.set_ylabel("Air Temperature (C)")
+    # Smooth data - take the mean of each hour's observations and return just those values (1 per hour)
+    hour_means = df.groupby(['datehour'])['temperature.value'].mean().reset_index()
+    ax = plot_obs(hour_means[::-1], x='datehour', y='temperature.value')
     ax.set_title(f"{station_name} observations")
     plt.show()
     plt.close('all')
+    # print(hour_means)
 
-
+    day_df = df.groupby(['date'], as_index=False).apply(lambda x: pd.Series([freezethaw_yn(x)], index=['freeze_thaw']))
+    day_df.info()
+    print(f"Freeze-thaw cycle detected on {day_df.freeze_thaw.sum()} days.")
+    
+    disp_cols = ['station', 'timestamp', 'temperature.value', 'dewpoint.value', 'precipitationLast3Hours.value']
     return df[disp_cols]
