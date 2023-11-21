@@ -44,6 +44,9 @@ class Location(object):
         self._lat = lat
         self._lon = lon
         self.noaa = NOAA(user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True)
+    
+    def __str__(self):
+        return f"{self._name} ({self._lat}, {self._lon})"
 
     def get_obs(self, start, end):
         """Return weather observations nearest this location. 
@@ -77,8 +80,6 @@ class Location(object):
         #print(res)
         return res['properties']['periods']
 
-
-    
 def reduce_obs(obs_df):
     """Given a data frame of weather observations from the NOAA API, return only the columns we want.
     
@@ -132,7 +133,7 @@ def plot_obs(df, **kwargs):
     ax.xaxis.set_major_locator(locator)
     ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
     ax.set_xlabel("Date and time")
-    ax.set_ylabel("Air Temperature (C)")
+    ax.set_ylabel("Air Temperature (F)")
     return ax
 
 def plot_forecast(df, **kwargs):
@@ -153,7 +154,7 @@ def plot_forecast(df, **kwargs):
     ax.set_ylabel("Air Temperature (F)")
     return ax
 
-def make_obs_df(loc, start, end):
+def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
     """Make data frame of weather station obs for a location from NOAA API
 
     Parameters
@@ -168,7 +169,7 @@ def make_obs_df(loc, start, end):
 
     obs_df_full = pd.concat([pd.json_normalize(o) for o in loc.get_obs(start, end)], ignore_index=True)
     # get rid of extraneous columns and rows with no temperature value
-    obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=['temperature.value'])
+    obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=[obs_tcol])
     print(f"Timestamp before: {obs_df_reduced.timestamp.iloc[0]}")
     # observations come in local time at the station, but 
     obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp, utc=True)
@@ -177,6 +178,16 @@ def make_obs_df(loc, start, end):
     obs_df_reduced['datehour'] = obs_df_reduced.timestamp.dt.floor('1H')
     # ensure we are only returning obs from one station
     assert(len(obs_df_reduced.station.unique())==1)
+    # create a column for temp in Fahrenheit
+    if obs_tcol == 'temperature.value':
+        obs_tunit_col = obs_df_reduced['temperature.unitCode']
+        if (obs_tunit_col == 'wmoUnit:degC').all() or (obs_tunit_col == 'C').all():
+            obs_df_reduced['tempF'] = (obs_df_reduced[obs_tcol]*(9/5))+32
+        else:
+            obs_df_reduced['tempF'] = obs_df_reduced[obs_tcol]
+    else:
+        obs_df_reduced['tempF'] = obs_df_reduced[obs_tcol]
+    
     return obs_df_reduced
 
 def parse_windspeed(speeds):
@@ -235,14 +246,17 @@ def corn_forecast(loc):
     obs_period = timedelta(days=5)
     start = now-obs_period
     end = now
-    tcol = 'temperature.value'
+    tcol = 'tempF'
 
     # start the forecast figure and get axes
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+    fig.suptitle(f"Corn forecast for {loc}")
 
     # get and plot observations
     df = make_obs_df(loc, start, end)
     station_name = df.station.iloc[0]
+    # Make sure the temperature column exists as expected
+    assert(tcol in df.columns)
     # Smooth data - take the mean of each hour's observations and return just those values (1 per hour)
     hour_means = df.groupby(['datehour'])[tcol].mean().reset_index()
     ax1 = plot_obs(hour_means[::-1], x='datehour', y=tcol, ax=ax1)
