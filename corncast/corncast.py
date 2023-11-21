@@ -128,6 +128,7 @@ def plot_obs(df, **kwargs):
     """
 
     ax = sns.lineplot(data=df, **kwargs)
+    ax.axhline(y=32, linestyle='dotted')
     #locator = ticker.MultipleLocator(base=20)
     locator = mdates.HourLocator(byhour=[6,18])
     ax.xaxis.set_major_locator(locator)
@@ -146,6 +147,7 @@ def plot_forecast(df, **kwargs):
     """
 
     ax = sns.lineplot(data=df, **kwargs)
+    ax.axhline(y=32, linestyle='dotted')
     #locator = ticker.MultipleLocator(base=20)
     locator = mdates.HourLocator(byhour=[6,18])
     ax.xaxis.set_major_locator(locator)
