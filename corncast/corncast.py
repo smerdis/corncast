@@ -75,9 +75,6 @@ class Location(object):
         elif 'properties' in res and 'periods' not in res['properties'] and type != 'forecastGridData':
             raise Exception(
                 '"periods" attribute not found. Possible response json changes')
-        # if type == 'forecastGridData':
-        #     return res['properties']
-        #print(res)
         return res['properties']['periods']
 
 def reduce_obs(obs_df):
@@ -104,9 +101,7 @@ def analyze_obs(obs_df, tcol='tempF'):
 
     mapping = dict()
     above = obs_df[tcol].max() > 32
-    # mapping['max_above_freezing'] = above
     below = obs_df[tcol].min() < 32
-    # mapping['min_below_freezing'] = below
     cycle = above & below # freeze/thaw cycle
     mapping['cycle'] = cycle
     if 'precipitationLast3Hours.value' in obs_df.columns: # observed (past) data
@@ -240,7 +235,6 @@ def make_forecast_df(loc):
     obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime, utc=True)
     obs_df_full = obs_df_full.join(obs_df_full.windSpeed.apply(parse_windspeed))
     obs_df_full.windSpeedInt = pd.to_numeric(obs_df_full.windSpeedInt) #.astype(np.int32)
-    #obs_df_full.info()
     # define which columns to keep and return
     cols_to_keep = ['startTime', 'endTime', 'isDaytime', 'temperature', 'temperatureUnit', 'windSpeed', 'windSpeedInt', 'windSpeedUnit', 'windDirection', 'shortForecast']
     cols_to_keep.extend([col for col in obs_df_full.columns if 'dewpoint' in col or 'relativeHumidity' in col or 'probabilityOfPrecipitation' in col])
