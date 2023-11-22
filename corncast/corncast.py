@@ -97,22 +97,33 @@ def reduce_obs(obs_df):
     return df_reduced
     
 def analyze_obs(obs_df, tcol='tempF'):
-    """Analyze a period of observations in Fahrenheit and compute summary stats."""
+    """Analyze a period of observations in Fahrenheit and compute summary stats.
+    
+    Parameters
+    ----------
+    obs_df : pandas.DataFrame
+        Data Frame of hourly temperatures in Fahrenheit
 
-    mapping = dict()
+    Returns
+    -------
+    summary : pandas.Series
+        Series of summary statistics with label as index
+    """
+
+    summary = dict()
     above = obs_df[tcol].max() > 32
     below = obs_df[tcol].min() < 32
     cycle = above & below # freeze/thaw cycle
-    mapping['cycle'] = cycle
+    summary['cycle'] = cycle
     if 'precipitationLast3Hours.value' in obs_df.columns: # observed (past) data
         obs_precip = obs_df['precipitationLast3Hours.value'].sum()
         obs_precip_iszero = obs_precip < 0.01
-        mapping['obs_precip'] = obs_precip
-        mapping['obs_precip_iszero'] = obs_precip_iszero
+        summary['obs_precip'] = obs_precip
+        summary['obs_precip_iszero'] = obs_precip_iszero
     if 'probabilityOfPrecipitation.value' in obs_df.columns: # forecast (future) data
         prob_precip = obs_df['probabilityOfPrecipitation.value'].max()
-        mapping['prob_precip'] = prob_precip
-    return pd.Series(mapping)
+        summary['prob_precip'] = prob_precip
+    return pd.Series(summary)
 
 def dt_axis_ang(plot_func):
     """Decorator that angles datetime x-axis labels at 45 degrees and labels the axis."""
