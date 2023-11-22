@@ -117,43 +117,44 @@ def freezethaw_yn(obs_df):
     
     else:
         return False
-
-def plot_obs(df, **kwargs):
-    """Make a line plot of temperature observations.
     
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Data Frame of observations from NOAA API.
-    """
+def analyze_obs(obs_df, tcol='tempF'):
+    """Analyze a period of observations in Fahrenheit and compute summary stats."""
 
-    ax = sns.lineplot(data=df, **kwargs)
+    above = obs_df[tcol].max() > 32
+    below = obs_df[tcol].min() < 32
+    return pd.Series({'max_above_freezing': above, 'max_below_freezing': below})
+
+def dt_axis_ang(plot_func):
+    """Decorator that angles datetime x-axis labels at 45 degrees and labels the axis."""
+
+    def wrapper(**args):
+        ax = plot_func(**args)
+        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
+        ax.set_xlabel("Date and time")
+        return ax
+    return wrapper
+
+def dt_axis(plot_func):
+    """Decorator that locates datetime x-axis ticks at particular hours."""
+
+    def wrapper(**args):
+        ax = plot_func(**args)
+        locator = mdates.HourLocator(byhour=[6,18])
+        ax.xaxis.set_major_locator(locator)
+        return ax
+    return wrapper
+
+@dt_axis_ang
+@dt_axis
+def plot_hourly(**kwargs):
+    ax = sns.lineplot(**kwargs)
     ax.axhline(y=32, linestyle='dotted')
-    #locator = ticker.MultipleLocator(base=20)
-    locator = mdates.HourLocator(byhour=[6,18])
-    ax.xaxis.set_major_locator(locator)
-    ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
-    ax.set_xlabel("Date and time")
-    ax.set_ylabel("Air Temperature (F)")
     return ax
 
-def plot_forecast(df, **kwargs):
-    """Make a line plot of the hourly forecast provided by the NOAA API.
-    
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Data Frame of forecast periods from NOAA API.
-    """
-
-    ax = sns.lineplot(data=df, **kwargs)
-    ax.axhline(y=32, linestyle='dotted')
-    #locator = ticker.MultipleLocator(base=20)
-    locator = mdates.HourLocator(byhour=[6,18])
-    ax.xaxis.set_major_locator(locator)
-    ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha='right')
-    ax.set_xlabel("Date and time")
-    ax.set_ylabel("Air Temperature (F)")
+@dt_axis_ang
+def dec_cat_plot(**kwargs):
+    ax = sns.pointplot(**kwargs)
     return ax
 
 def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
@@ -178,6 +179,8 @@ def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
     print(f"Timestamp after: {obs_df_reduced.timestamp.iloc[0]}")
     obs_df_reduced['date'] = obs_df_reduced.timestamp.dt.floor('1D')
     obs_df_reduced['datehour'] = obs_df_reduced.timestamp.dt.floor('1H')
+    obs_df_reduced['date_nearest12'] = obs_df_reduced.timestamp.dt.floor('12H')
+    obs_df_reduced['date_nearest6'] = obs_df_reduced.timestamp.dt.floor('6H')
     # ensure we are only returning obs from one station
     assert(len(obs_df_reduced.station.unique())==1)
     # create a column for temp in Fahrenheit
@@ -232,7 +235,10 @@ def make_forecast_df(loc):
     # define which columns to keep and return
     cols_to_keep = ['startTime', 'endTime', 'isDaytime', 'temperature', 'temperatureUnit', 'windSpeed', 'windSpeedInt', 'windSpeedUnit', 'windDirection', 'shortForecast']
     cols_to_keep.extend([col for col in obs_df_full.columns if 'dewpoint' in col or 'relativeHumidity' in col or 'probabilityOfPrecipitation' in col])
-    return obs_df_full[cols_to_keep]
+    out_df = obs_df_full[cols_to_keep].copy()
+    out_df['date_nearest12'] = out_df.startTime.dt.floor('12H')
+    out_df['date_nearest6'] = out_df.startTime.dt.floor('6H')
+    return out_df
 
 def corn_forecast(loc):
     """Corn Forecast function.
@@ -251,8 +257,8 @@ def corn_forecast(loc):
     tcol = 'tempF'
 
     # start the forecast figure and get axes
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
-    fig.suptitle(f"Corn forecast for {loc}")
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 4), sharey=True)
+    fig.suptitle(f"Data for {loc}")
 
     # get and plot observations
     df = make_obs_df(loc, start, end)
@@ -261,21 +267,33 @@ def corn_forecast(loc):
     assert(tcol in df.columns)
     # Smooth data - take the mean of each hour's observations and return just those values (1 per hour)
     hour_means = df.groupby(['datehour'])[tcol].mean().reset_index()
-    ax1 = plot_obs(hour_means[::-1], x='datehour', y=tcol, ax=ax1)
-    ax1.set_title(f"{station_name} observed")
-
-    # Group by day and compute some stats
-    day_df = df.groupby(['date'], as_index=False).apply(lambda x: pd.Series([freezethaw_yn(x)], index=['freeze_thaw']))
-    print(f"Freeze-thaw cycle detected on {day_df.freeze_thaw.sum()} days.")
+    ax1 = plot_hourly(data=hour_means[::-1], x='datehour', y=tcol, ax=ax1)
+    ax1.set_title(f"{station_name} observed data")
 
     # Get and plot forecast nearest this location
     fcst_df = make_forecast_df(loc)
-    ax2 = plot_forecast(fcst_df, x='startTime', y='temperature', ax=ax2)
-    ax2.set_title(f"Forecast")
+    ax2 = plot_hourly(data=fcst_df, x='startTime', y='temperature', ax=ax2)
+    ax2.set_title(f"Forecast data")
 
     # Show the forecast figure and close it
     plt.show(fig)
     plt.close('all)')
 
+    # Calculate and show the categorical forecast for periods (6 or 24h initially)
+    fig_cat, (ax_6h, ax_fcst_6h) = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
+    fig_cat.suptitle(f"Categorical corn forecast for {loc}")
+
+    # Group by day and compute some stats
+    obs_24h_df = df.groupby(['date'], as_index=False).apply(lambda x: pd.Series([freezethaw_yn(x)], index=['freeze_thaw']))
+    print(f"Freeze-thaw cycle detected on {obs_24h_df.freeze_thaw.sum()} days:\n{obs_24h_df[obs_24h_df.freeze_thaw]}")
+
+    # Group by 6h
+    obs_6h_df = df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
+    print(obs_6h_df)
+    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='max_above_freezing', ax=ax_6h)
+
+    plt.show(fig_cat)
+    plt.close('all')
+
     # Return data frames to fiddle with
-    return (df, day_df, fcst_df)
+    return (df, obs_24h_df, obs_6h_df, fcst_df)
