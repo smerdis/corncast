@@ -135,8 +135,10 @@ def plot_hourly(**kwargs):
     return ax
 
 @dt_axis_ang
+@dt_axis
 def dec_cat_plot(**kwargs):
     ax = sns.scatterplot(**kwargs)
+    ax.get_yaxis().set_visible(False)
     return ax
 
 def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
@@ -155,10 +157,8 @@ def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
     obs_df_full = pd.concat([pd.json_normalize(o) for o in loc.get_obs(start, end)], ignore_index=True)
     # get rid of extraneous columns and rows with no temperature value
     obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=[obs_tcol])
-    print(f"Timestamp before: {obs_df_reduced.timestamp.iloc[0]}")
-    # observations come in local time at the station, but 
+    # observations come in local time at the station
     obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp, utc=True)
-    print(f"Timestamp after: {obs_df_reduced.timestamp.iloc[0]}")
     obs_df_reduced['date'] = obs_df_reduced.timestamp.dt.floor('1D')
     obs_df_reduced['datehour'] = obs_df_reduced.timestamp.dt.floor('1H')
     obs_df_reduced['date_nearest12'] = obs_df_reduced.timestamp.dt.floor('12H')
@@ -218,6 +218,7 @@ def make_forecast_df(loc):
     cols_to_keep = ['startTime', 'endTime', 'isDaytime', 'temperature', 'temperatureUnit', 'windSpeed', 'windSpeedInt', 'windSpeedUnit', 'windDirection', 'shortForecast']
     cols_to_keep.extend([col for col in obs_df_full.columns if 'dewpoint' in col or 'relativeHumidity' in col or 'probabilityOfPrecipitation' in col])
     out_df = obs_df_full[cols_to_keep].copy()
+    out_df['tempF'] = out_df['temperature']
     out_df['date_nearest12'] = out_df.startTime.dt.floor('12H')
     out_df['date_nearest6'] = out_df.startTime.dt.floor('6H')
     return out_df
@@ -262,18 +263,20 @@ def corn_forecast(loc):
     plt.close('all)')
 
     # Calculate and show the categorical forecast for periods (6 or 24h initially)
-    fig_cat, (ax_6h, ax_24h) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+    fig_cat, (ax_6h, ax_fcst_6h) = plt.subplots(1, 2, figsize=(10, 4))
     fig_cat.suptitle(f"Categorical corn forecast for {loc}")
 
     # Group by day and compute some stats
     obs_24h_df = df.groupby(['date'], as_index=False).apply(analyze_obs)
-    #print(f"Freeze-thaw cycle detected on {obs_24h_df.freeze_thaw.sum()} days:\n{obs_24h_df[obs_24h_df.freeze_thaw]}")
-    ax_24h = dec_cat_plot(data=obs_24h_df[::-1], x='date', y='cycle', ax=ax_24h)
+    #ax_24h = dec_cat_plot(data=obs_24h_df[::-1], x='date', y='cycle', ax=ax_24h)
 
     # Group by 6h
     obs_6h_df = df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
-    print(obs_6h_df)
-    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_6h)
+    #obs_6h_df[obs_6h_df['cycle']==True][::-1]
+    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_6h, hue='cycle')
+
+    fcst_6h_df = fcst_df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
+    ax_fcst_6h = dec_cat_plot(data=fcst_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_fcst_6h, hue='cycle')
 
     plt.show(fig_cat)
     plt.close('all')
