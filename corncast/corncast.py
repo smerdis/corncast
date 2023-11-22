@@ -98,32 +98,14 @@ def reduce_obs(obs_df):
     keep_cols.extend([col for col in obs_df.columns if ('temperature' in col or 'dewpoint' in col or 'precipitation' in col or 'wind' in col) and 'qualityControl' not in col])
     df_reduced = obs_df[keep_cols]
     return df_reduced
-
-def calc_max_temp(obs_df, col='temperature.value'):
-    """Return the maximum temperature in a data frame of weather observations."""
-
-    return obs_df[col].max()
-
-def calc_min_temp(obs_df, col='temperature.value'):
-    """Return the minimum temperature in a data frame of weather observations."""
-
-    return obs_df[col].min()
-
-def freezethaw_yn(obs_df):
-    """Was there a freeze-thaw cycle in this dataset of observations?"""
-
-    if calc_max_temp(obs_df) > 0 and calc_min_temp(obs_df) < 0:
-        return True
-    
-    else:
-        return False
     
 def analyze_obs(obs_df, tcol='tempF'):
     """Analyze a period of observations in Fahrenheit and compute summary stats."""
 
     above = obs_df[tcol].max() > 32
     below = obs_df[tcol].min() < 32
-    return pd.Series({'max_above_freezing': above, 'max_below_freezing': below})
+    cycle = above & below
+    return pd.Series({'max_above_freezing': above, 'min_below_freezing': below, 'cycle': cycle})
 
 def dt_axis_ang(plot_func):
     """Decorator that angles datetime x-axis labels at 45 degrees and labels the axis."""
@@ -154,7 +136,7 @@ def plot_hourly(**kwargs):
 
 @dt_axis_ang
 def dec_cat_plot(**kwargs):
-    ax = sns.pointplot(**kwargs)
+    ax = sns.scatterplot(**kwargs)
     return ax
 
 def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
@@ -257,7 +239,7 @@ def corn_forecast(loc):
     tcol = 'tempF'
 
     # start the forecast figure and get axes
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 4), sharey=True)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
     fig.suptitle(f"Data for {loc}")
 
     # get and plot observations
@@ -280,17 +262,18 @@ def corn_forecast(loc):
     plt.close('all)')
 
     # Calculate and show the categorical forecast for periods (6 or 24h initially)
-    fig_cat, (ax_6h, ax_fcst_6h) = plt.subplots(1, 2, figsize=(12, 4), sharey=True)
+    fig_cat, (ax_6h, ax_24h) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
     fig_cat.suptitle(f"Categorical corn forecast for {loc}")
 
     # Group by day and compute some stats
-    obs_24h_df = df.groupby(['date'], as_index=False).apply(lambda x: pd.Series([freezethaw_yn(x)], index=['freeze_thaw']))
-    print(f"Freeze-thaw cycle detected on {obs_24h_df.freeze_thaw.sum()} days:\n{obs_24h_df[obs_24h_df.freeze_thaw]}")
+    obs_24h_df = df.groupby(['date'], as_index=False).apply(analyze_obs)
+    #print(f"Freeze-thaw cycle detected on {obs_24h_df.freeze_thaw.sum()} days:\n{obs_24h_df[obs_24h_df.freeze_thaw]}")
+    ax_24h = dec_cat_plot(data=obs_24h_df[::-1], x='date', y='cycle', ax=ax_24h)
 
     # Group by 6h
     obs_6h_df = df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
     print(obs_6h_df)
-    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='max_above_freezing', ax=ax_6h)
+    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_6h)
 
     plt.show(fig_cat)
     plt.close('all')
