@@ -102,10 +102,22 @@ def reduce_obs(obs_df):
 def analyze_obs(obs_df, tcol='tempF'):
     """Analyze a period of observations in Fahrenheit and compute summary stats."""
 
+    mapping = dict()
     above = obs_df[tcol].max() > 32
+    # mapping['max_above_freezing'] = above
     below = obs_df[tcol].min() < 32
-    cycle = above & below
-    return pd.Series({'max_above_freezing': above, 'min_below_freezing': below, 'cycle': cycle})
+    # mapping['min_below_freezing'] = below
+    cycle = above & below # freeze/thaw cycle
+    mapping['cycle'] = cycle
+    if 'precipitationLast3Hours.value' in obs_df.columns: # observed (past) data
+        obs_precip = obs_df['precipitationLast3Hours.value'].sum()
+        obs_precip_iszero = obs_precip < 0.01
+        mapping['obs_precip'] = obs_precip
+        mapping['obs_precip_iszero'] = obs_precip_iszero
+    if 'probabilityOfPrecipitation.value' in obs_df.columns: # forecast (future) data
+        prob_precip = obs_df['probabilityOfPrecipitation.value'].max()
+        mapping['prob_precip'] = prob_precip
+    return pd.Series(mapping)
 
 def dt_axis_ang(plot_func):
     """Decorator that angles datetime x-axis labels at 45 degrees and labels the axis."""
@@ -152,6 +164,11 @@ def make_obs_df(loc, start, end, obs_tcol='temperature.value'):
         beginning of time period we want observations from
     end : datetime
         end of time period we want observations from
+    
+    Returns
+    -------
+    out_df : pandas.DataFrame
+        Data Frame in expected format for hourly data
     """
 
     obs_df_full = pd.concat([pd.json_normalize(o) for o in loc.get_obs(start, end)], ignore_index=True)
@@ -184,6 +201,11 @@ def parse_windspeed(speeds):
     ----------
     speeds : pd.Series
         Series of wind speeds, each like "25 mph"
+
+    Returns
+    -------
+    out : pandas.Series
+        Series with wind speed (integer, e.g. 25) and unit (e.g. "mph")
     """
 
     if "mph" in speeds:
@@ -206,6 +228,11 @@ def make_forecast_df(loc):
     ----------
     loc : Location
         Location to fetch observations for
+
+    Returns
+    -------
+    out_df : pandas.DataFrame
+        Data Frame in expected format for hourly data
     """
 
     obs_df_full = pd.DataFrame(pd.json_normalize(loc.get_forecast()))
@@ -219,6 +246,7 @@ def make_forecast_df(loc):
     cols_to_keep.extend([col for col in obs_df_full.columns if 'dewpoint' in col or 'relativeHumidity' in col or 'probabilityOfPrecipitation' in col])
     out_df = obs_df_full[cols_to_keep].copy()
     out_df['tempF'] = out_df['temperature']
+    out_df['date'] = out_df.startTime.dt.floor('1D')
     out_df['date_nearest12'] = out_df.startTime.dt.floor('12H')
     out_df['date_nearest6'] = out_df.startTime.dt.floor('6H')
     return out_df
@@ -262,24 +290,11 @@ def corn_forecast(loc):
     plt.show(fig)
     plt.close('all)')
 
-    # Calculate and show the categorical forecast for periods (6 or 24h initially)
-    fig_cat, (ax_6h, ax_fcst_6h) = plt.subplots(1, 2, figsize=(10, 4))
-    fig_cat.suptitle(f"Categorical corn forecast for {loc}")
-
-    # Group by day and compute some stats
-    obs_24h_df = df.groupby(['date'], as_index=False).apply(analyze_obs)
-    #ax_24h = dec_cat_plot(data=obs_24h_df[::-1], x='date', y='cycle', ax=ax_24h)
-
-    # Group by 6h
-    obs_6h_df = df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
-    #obs_6h_df[obs_6h_df['cycle']==True][::-1]
-    ax_6h = dec_cat_plot(data=obs_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_6h, hue='cycle')
-
-    fcst_6h_df = fcst_df.groupby(['date_nearest6'], as_index=False).apply(analyze_obs)
-    ax_fcst_6h = dec_cat_plot(data=fcst_6h_df[::-1], x='date_nearest6', y='cycle', ax=ax_fcst_6h, hue='cycle')
-
-    plt.show(fig_cat)
-    plt.close('all')
+    # Group by time period (6, 12, 24h, etc)
+    period_gvar = ['date']
+    obs_period_df = df.groupby(period_gvar, as_index=False).apply(analyze_obs)
+    fcst_period_df = fcst_df.groupby(period_gvar, as_index=False).apply(analyze_obs)
+    comb_period_df = pd.concat([obs_period_df, fcst_period_df], ignore_index=True)
 
     # Return data frames to fiddle with
-    return (df, obs_24h_df, obs_6h_df, fcst_df)
+    return (df, comb_period_df)
