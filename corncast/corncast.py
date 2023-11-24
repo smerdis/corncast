@@ -49,7 +49,7 @@ class Location(object):
         )
 
     def __str__(self):
-        return f"{self._name} ({self._lat}, {self._lon})"
+        return f"{self._name} ({self._lat:.2f}, {self._lon:.2f})"
 
     def get_obs(self, start, end):
         """Return weather observations nearest this location.
