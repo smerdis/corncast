@@ -346,7 +346,8 @@ def corn_forecast(loc):
     station_name = df.station.iloc[0]
     # Make sure the temperature column exists as expected
     assert tcol in df.columns
-    # Smooth data - take the mean of each hour's observations and return just those values (1 per hour)
+    # Temporal smoothing of air temperature data
+    # Take the mean of each hour's observations
     hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
     ax1 = plot_hourly(data=hour_means[::-1], x="datehour", y=tcol, ax=ax1)
     elev_value = df["elevation.value"].iloc[0]
