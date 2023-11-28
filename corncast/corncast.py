@@ -209,11 +209,19 @@ def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
         beginning of time period we want observations from
     end : datetime
         end of time period we want observations from
+    obs_tcol : str
+        name of column containing observed temperature data, optional.
+        If not provided, assume 'temperature.value'
+        ^ This is returned by json_normalize() with 'temperature.unitCode'
+        If 'temperature.unitCode' is not 'wmoUnit:degC' or 'C',
+        obs_tcol assumed to be in Fahrenheit
+        Otherwise, it is converted to F
 
     Returns
     -------
     out_df : pandas.DataFrame
-        Data Frame in expected format for hourly data
+        Data Frame in expected format for hourly data.
+        'tempF' contains the observed temperature in Fahrenheit
     """
 
     obs_df_full = pd.concat(
