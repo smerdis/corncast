@@ -290,6 +290,7 @@ def make_forecast_df(loc):
     -------
     out_df : pandas.DataFrame
         Data Frame in expected format for hourly data
+        'tempF' contains the observed temperature in Fahrenheit
     """
 
     obs_df_full = pd.DataFrame(pd.json_normalize(loc.get_forecast()))
