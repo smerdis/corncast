@@ -185,16 +185,13 @@ def dt_axis(plot_func):
 @dt_axis_ang
 @dt_axis
 def plot_hourly(**kwargs):
+    """Plot hourly temperature data from make_obs_df() or make_forecast_df()
+    
+    All kwargs are passed to seaborn lineplot()
+    """
+
     ax = sns.lineplot(**kwargs)
     ax.axhline(y=32, linestyle="dotted")
-    return ax
-
-
-@dt_axis_ang
-@dt_axis
-def dec_cat_plot(**kwargs):
-    ax = sns.scatterplot(**kwargs)
-    ax.get_yaxis().set_visible(False)
     return ax
 
 
