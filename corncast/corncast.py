@@ -365,6 +365,7 @@ def corn_forecast(loc):
     # Take the mean of each hour's observations
     hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
     ax1 = plot_hourly(data=hour_means[::-1], x="datehour", y=tcol, ax=ax1)
+    # parse elevation and generate string representation in feet
     elev_value = df["elevation.value"].iloc[0]
     if (uc := df["elevation.unitCode"].iloc[0]) == "m" or uc == "wmoUnit:m":
         elev_str = f"{3.28*elev_value:.0f} feet"
