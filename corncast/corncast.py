@@ -359,7 +359,8 @@ def corn_forecast(loc):
     df = make_obs_df(loc, start, end)
     station_name = df.station.iloc[0]
     # Make sure the temperature column exists as expected
-    assert tcol in df.columns
+    if tcol not in df.columns:
+        raise KeyError(f"Temperature column '{tcol}' not found in make_obs_df() output data frame!")
     # Temporal smoothing of air temperature data
     # Take the mean of each hour's observations
     hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
