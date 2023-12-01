@@ -334,6 +334,14 @@ def corn_forecast(loc):
     ----------
     loc : Location
         Location this corn forecast is for
+
+    Returns
+    -------
+    obs_df : pandas.DataFrame
+        Hourly observations from the NOAA weather API for the nearest station
+    comb_period_df : pandas.DataFrame
+        Hourly observations and forecasted conditions
+        Grouped by a time period (e.g. day, 12h), summarized by analyze_obs()
     """
 
     # set up some variables
