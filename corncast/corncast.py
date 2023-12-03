@@ -186,7 +186,7 @@ def dt_axis(plot_func):
 @dt_axis
 def plot_hourly(**kwargs):
     """Plot hourly temperature data from make_obs_df() or make_forecast_df()
-    
+
     All kwargs are passed to seaborn lineplot()
     """
 
@@ -360,7 +360,9 @@ def corn_forecast(loc):
     station_name = df.station.iloc[0]
     # Make sure the temperature column exists as expected
     if tcol not in df.columns:
-        raise KeyError(f"Temperature column '{tcol}' not found in make_obs_df() output data frame!")
+        raise KeyError(
+            f"Temperature column '{tcol}' not found in make_obs_df() output data frame!"
+        )
     # Temporal smoothing of air temperature data
     # Take the mean of each hour's observations
     hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
