@@ -41,7 +41,7 @@ class Location(object):
             longitude of location
         """
 
-        self._name = name
+        self.name = name
         self._lat = lat
         self._lon = lon
         self.noaa = NOAA(
@@ -49,7 +49,7 @@ class Location(object):
         )
 
     def __str__(self):
-        return f"{self._name} ({self._lat:.2f}, {self._lon:.2f})"
+        return f"{self.name} ({self._lat:.2f}, {self._lon:.2f})"
 
     def get_obs(self, start, end):
         """Return weather observations nearest this location.
