@@ -351,11 +351,11 @@ def corn_forecast(loc):
     end = now
     tcol = "tempF"
 
-    # start the forecast figure and get axes
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
-    fig.suptitle(f"Overview for {loc}")
+    # # start the forecast figure and get axes
+    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+    # fig.suptitle(f"Overview for {loc}")
 
-    # get and plot observations
+    # get observations from NOAA API
     df = make_obs_df(loc, start, end)
     station_name = df.station.iloc[0]
     # Make sure the temperature column exists as expected
@@ -363,28 +363,29 @@ def corn_forecast(loc):
         raise KeyError(
             f"Temperature column '{tcol}' not found in make_obs_df() output data frame!"
         )
-    # Temporal smoothing of air temperature data
-    # Take the mean of each hour's observations
-    hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
-    ax1 = plot_hourly(data=hour_means[::-1], x="datehour", y=tcol, ax=ax1)
-    # parse elevation and generate string representation in feet
-    elev_value = df["elevation.value"].iloc[0]
-    if (uc := df["elevation.unitCode"].iloc[0]) == "m" or uc == "wmoUnit:m":
-        elev_str = f"{3.28*elev_value:.0f} feet"
-    elif uc == "ft" or uc == "feet":
-        elev_str = f"{elev_value:.0f} feet"
-    else:
-        raise ValueError("Cannot parse elevation.unitCode!")
-    ax1.set_title(f"{station_name.split('/')[-1]} ({elev_str}) observed data")
+    # # Temporal smoothing of air temperature data
+    # # Take the mean of each hour's observations
+    # hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
+    # ax1 = plot_hourly(data=hour_means[::-1], x="datehour", y=tcol, ax=ax1)
+    # # parse elevation and generate string representation in feet
+    # elev_value = df["elevation.value"].iloc[0]
+    # if (uc := df["elevation.unitCode"].iloc[0]) == "m" or uc == "wmoUnit:m":
+    #     elev_str = f"{3.28*elev_value:.0f} feet"
+    # elif uc == "ft" or uc == "feet":
+    #     elev_str = f"{elev_value:.0f} feet"
+    # else:
+    #     raise ValueError("Cannot parse elevation.unitCode!")
+    # ax1.set_title(f"{station_name.split('/')[-1]} ({elev_str}) observed data")
 
-    # Get and plot forecast nearest this location
+    # Get forecast nearest this location
     fcst_df = make_forecast_df(loc)
-    ax2 = plot_hourly(data=fcst_df, x="startTime", y="temperature", ax=ax2)
-    ax2.set_title(f"Forecast data")
 
-    # Show the forecast figure and close it
-    plt.show(fig)
-    plt.close("all)")
+    # ax2 = plot_hourly(data=fcst_df, x="startTime", y="temperature", ax=ax2)
+    # ax2.set_title(f"Forecast data")
+
+    # # Show the forecast figure and close it
+    # plt.show(fig)
+    # plt.close("all)")
 
     # Group by time period (6, 12, 24h, etc)
     period_gvar = ["date"]
