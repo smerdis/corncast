@@ -6,6 +6,7 @@ import matplotlib.ticker as ticker
 import matplotlib.dates as mdates
 
 from io import StringIO
+import warnings
 
 from dateutil import tz
 from datetime import datetime, timedelta
@@ -221,9 +222,14 @@ def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
         'tempF' contains the observed temperature in Fahrenheit
     """
 
-    obs_df_full = pd.concat(
-        [pd.json_normalize(o) for o in loc.get_obs(start, end)], ignore_index=True
-    )
+    with warnings.catch_warnings():
+        # pd.concat() raises a FutureWarning on this operation that cannot be
+        # avoided without expensive computations on each observation (slow)
+        # so we suppress the warning for this operation only
+        warnings.simplefilter("ignore")
+        obs_df_full = pd.concat(
+            [pd.json_normalize(o) for o in loc.get_obs(start, end)], ignore_index=True
+        )
     # get rid of extraneous columns and rows with no temperature value
     obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=[obs_tcol])
     # observations come in local time at the station
