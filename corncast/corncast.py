@@ -1,16 +1,6 @@
-import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import matplotlib.dates as mdates
-
-from io import StringIO
 import warnings
-
-from dateutil import tz
 from datetime import datetime, timedelta
-
 from noaa_sdk import NOAA
 
 
@@ -159,43 +149,6 @@ def analyze_obs(obs_df, tcol="tempF"):
     return pd.Series(summary)
 
 
-def dt_axis_ang(plot_func):
-    """Decorator that angles datetime x-axis labels at 45 degrees and labels the axis."""
-
-    def wrapper(**args):
-        ax = plot_func(**args)
-        ax.set_xticks(ax.get_xticks(), ax.get_xticklabels(), rotation=45, ha="right")
-        ax.set_xlabel("Date and time")
-        return ax
-
-    return wrapper
-
-
-def dt_axis(plot_func):
-    """Decorator that locates datetime x-axis ticks at particular hours."""
-
-    def wrapper(**args):
-        ax = plot_func(**args)
-        locator = mdates.HourLocator(byhour=[6, 18])
-        ax.xaxis.set_major_locator(locator)
-        return ax
-
-    return wrapper
-
-
-@dt_axis_ang
-@dt_axis
-def plot_hourly(**kwargs):
-    """Plot hourly temperature data from make_obs_df() or make_forecast_df()
-
-    All kwargs are passed to seaborn lineplot()
-    """
-
-    ax = sns.lineplot(**kwargs)
-    ax.axhline(y=32, linestyle="dotted")
-    return ax
-
-
 def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
     """Make data frame of weather station obs for a location from NOAA API
 
@@ -300,9 +253,7 @@ def make_forecast_df(loc):
     obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime, utc=True)
     obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime, utc=True)
     obs_df_full = obs_df_full.join(obs_df_full.windSpeed.apply(parse_windspeed))
-    obs_df_full.windSpeedInt = pd.to_numeric(
-        obs_df_full.windSpeedInt
-    )  # .astype(np.int32)
+    obs_df_full.windSpeedInt = pd.to_numeric(obs_df_full.windSpeedInt)
     # define which columns to keep and return
     cols_to_keep = [
         "startTime",
@@ -357,10 +308,6 @@ def corn_forecast(loc):
     end = now
     tcol = "tempF"
 
-    # # start the forecast figure and get axes
-    # fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
-    # fig.suptitle(f"Overview for {loc}")
-
     # get observations from NOAA API
     df = make_obs_df(loc, start, end)
     station_name = df.station.iloc[0]
@@ -369,29 +316,8 @@ def corn_forecast(loc):
         raise KeyError(
             f"Temperature column '{tcol}' not found in make_obs_df() output data frame!"
         )
-    # # Temporal smoothing of air temperature data
-    # # Take the mean of each hour's observations
-    # hour_means = df.groupby(["datehour"])[tcol].mean().reset_index()
-    # ax1 = plot_hourly(data=hour_means[::-1], x="datehour", y=tcol, ax=ax1)
-    # # parse elevation and generate string representation in feet
-    # elev_value = df["elevation.value"].iloc[0]
-    # if (uc := df["elevation.unitCode"].iloc[0]) == "m" or uc == "wmoUnit:m":
-    #     elev_str = f"{3.28*elev_value:.0f} feet"
-    # elif uc == "ft" or uc == "feet":
-    #     elev_str = f"{elev_value:.0f} feet"
-    # else:
-    #     raise ValueError("Cannot parse elevation.unitCode!")
-    # ax1.set_title(f"{station_name.split('/')[-1]} ({elev_str}) observed data")
 
-    # Get forecast nearest this location
     fcst_df = make_forecast_df(loc)
-
-    # ax2 = plot_hourly(data=fcst_df, x="startTime", y="temperature", ax=ax2)
-    # ax2.set_title(f"Forecast data")
-
-    # # Show the forecast figure and close it
-    # plt.show(fig)
-    # plt.close("all)")
 
     # Group by time period (6, 12, 24h, etc)
     period_gvar = ["date"]
