@@ -7,6 +7,7 @@ from app import app
 from environment.settings import APP_HOST, APP_PORT, APP_DEBUG
 
 from pages.dashboard import render_dashboard
+from pages.page_not_found import page_not_found
 
 server = app.server
 
