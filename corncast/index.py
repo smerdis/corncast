@@ -5,12 +5,15 @@ from datetime import datetime, timedelta
 
 from app import app
 
+from environment.settings import APP_HOST, APP_PORT, APP_DEBUG
+
 from corncast import Location, corn_forecast, make_obs_df, make_forecast_df
 
-locs = [Location("Mt. Rose Summit", 39.3144, -119.9173),
-        Location("Berkeley", 37.8715, -122.27),
+locs = [Location("Mt. Rose Summit", 39.314, -119.917),
         Location("Mt. Shasta - Bunny Flat", 41.353, -122.234)]
 locations = {l.name : l for l in locs}
+
+server = app.server
 
 app.layout = html.Div([
     html.H1(children='Corn Forecast', style={'textAlign':'center'}),
@@ -41,4 +44,4 @@ def update_fcst(value, tcol='tempF'):
     return px.line(fcst_df, x='startTime', y=tcol)
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=APP_DEBUG, host=APP_HOST, port=APP_PORT)
