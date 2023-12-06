@@ -60,8 +60,15 @@ class Location(object):
             end.strftime("%Y-%m-%d %H:%M:%S"),
         )
 
-    def get_forecast(self):
-        """Return weather forecast nearest this location."""
+    def get_forecast(self, full=False):
+        """Return weather forecast nearest this location.
+
+        Parameters
+        ----------
+        full : bool
+            Return the full 'properties' dict returned by NOAA (default False)
+            If false, return only the 'periods' element of this dict
+        """
 
         res = self.noaa.points_forecast(self._lat, self._lon, type="forecastHourly")
 
@@ -83,7 +90,10 @@ class Location(object):
             raise Exception(
                 '"periods" attribute not found. Possible response json changes'
             )
-        return res["properties"]["periods"]
+        if full:
+            return res["properties"]
+        else:
+            return res["properties"]["periods"]
 
 
 def reduce_obs(obs_df):
@@ -249,7 +259,15 @@ def make_forecast_df(loc):
         'tempF' contains the observed temperature in Fahrenheit
     """
 
-    obs_df_full = pd.DataFrame(pd.json_normalize(loc.get_forecast()))
+    fcst_json = loc.get_forecast(full=True)
+    elev_value = fcst_json['elevation']['value']
+    if (uc := fcst_json['elevation']['unitCode']) == "m" or uc == "wmoUnit:m":
+        elev_ft = 3.28 * elev_value
+    elif uc == "ft" or uc == "feet":
+        elev_ft = elev_value
+    else:
+        raise ValueError("Cannot parse elevation.unitCode!")
+    obs_df_full = pd.DataFrame(pd.json_normalize(fcst_json["periods"]))
     obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime, utc=True)
     obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime, utc=True)
     obs_df_full = obs_df_full.join(obs_df_full.windSpeed.apply(parse_windspeed))
@@ -281,6 +299,7 @@ def make_forecast_df(loc):
     out_df["date"] = out_df.startTime.dt.floor("1D")
     out_df["date_nearest12"] = out_df.startTime.dt.floor("12H")
     out_df["date_nearest6"] = out_df.startTime.dt.floor("6H")
+    out_df['elev_ft'] = elev_ft
     return out_df
 
 
