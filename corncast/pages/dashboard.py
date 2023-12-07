@@ -82,6 +82,7 @@ def update_obs(value, tcol="tempF"):
         hour_means,
         x="datehour",
         y=tcol,
+        labels={"datehour": "Date", tcol: "Temperature (F)"},
         title=f"Observations at {station_name.split('/')[-1]} ({elev_str})",
     ).add_hline(y=32, line_dash="dot")
 
@@ -95,6 +96,9 @@ def update_fcst(value, tcol="tempF"):
         )
 
     return px.line(
-        fcst_df, x="startTime", y=tcol,
-        title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)"
+        fcst_df,
+        x="startTime",
+        y=tcol,
+        labels={"startTime": "Date", tcol: "Temperature (F)"},
+        title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")

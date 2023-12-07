@@ -260,8 +260,8 @@ def make_forecast_df(loc):
     """
 
     fcst_json = loc.get_forecast(full=True)
-    elev_value = fcst_json['elevation']['value']
-    if (uc := fcst_json['elevation']['unitCode']) == "m" or uc == "wmoUnit:m":
+    elev_value = fcst_json["elevation"]["value"]
+    if (uc := fcst_json["elevation"]["unitCode"]) == "m" or uc == "wmoUnit:m":
         elev_ft = 3.28 * elev_value
     elif uc == "ft" or uc == "feet":
         elev_ft = elev_value
@@ -299,7 +299,7 @@ def make_forecast_df(loc):
     out_df["date"] = out_df.startTime.dt.floor("1D")
     out_df["date_nearest12"] = out_df.startTime.dt.floor("12H")
     out_df["date_nearest6"] = out_df.startTime.dt.floor("6H")
-    out_df['elev_ft'] = elev_ft
+    out_df["elev_ft"] = elev_ft
     return out_df
 
 
