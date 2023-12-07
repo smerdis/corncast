@@ -268,8 +268,8 @@ def make_forecast_df(loc):
     else:
         raise ValueError("Cannot parse elevation.unitCode!")
     obs_df_full = pd.DataFrame(pd.json_normalize(fcst_json["periods"]))
-    obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime, utc=True)
-    obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime, utc=True)
+    obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime)
+    obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime)
     obs_df_full = obs_df_full.join(obs_df_full.windSpeed.apply(parse_windspeed))
     obs_df_full.windSpeedInt = pd.to_numeric(obs_df_full.windSpeedInt)
     # define which columns to keep and return
