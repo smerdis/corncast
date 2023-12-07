@@ -5,7 +5,7 @@ import plotly.express as px
 
 from datetime import datetime, timedelta
 
-from corncast import Location, make_forecast_df, make_obs_df
+from corncast import Location, make_forecast_df, make_obs_df, parse_elev
 
 from app import app
 
@@ -95,50 +95,43 @@ def render_dashboard():
 
 
 @app.callback(Output("obs-temp", "figure"), Input("loc-selection", "value"))
-def update_obs(value, tcol="tempF"):
+def update_obs(value, xcol="datehour", tcol="tempF"):
+    """Update observed temperatures graph when location is changed.
+    This function calls make_obs_df() which hits the NOAA API endpoint
+    and returns a dataframe of observations from the nearest station."""
+
     now = datetime.now()
     obs_period = timedelta(days=5)
     start = now - obs_period
     end = now
     obs_df = make_obs_df(locations[value], start, end)
-    if tcol not in obs_df.columns:
-        raise KeyError(
-            f"Temperature column '{tcol}' not found in make_obs_df() output data frame!"
-        )
 
     # information about the weather station these observations are from
     station_name = obs_df.station.iloc[0]
-    elev_value = obs_df["elevation.value"].iloc[0]
-    if (uc := obs_df["elevation.unitCode"].iloc[0]) == "m" or uc == "wmoUnit:m":
-        elev_str = f"{3.28*elev_value:.0f} feet"
-    elif uc == "ft" or uc == "feet":
-        elev_str = f"{elev_value:.0f} feet"
-    else:
-        raise ValueError("Cannot parse elevation.unitCode!")
+    _, elev_str = parse_elev(obs_df["elevation.value"], obs_df["elevation.unitCode"])
 
     # group by hour, take the mean of temp readings within that hour, plot
-    hour_means = obs_df.groupby(["datehour"])[tcol].mean().reset_index()
+    hour_means = obs_df.groupby([xcol])[tcol].mean().reset_index()
     return px.line(
         hour_means,
-        x="datehour",
+        x=xcol,
         y=tcol,
-        labels={"datehour": "", tcol: "Temperature (F)"},
+        labels={xcol: "", tcol: "Temperature (F)"},
         title=f"Observations at {station_name.split('/')[-1]} ({elev_str})",
     ).add_hline(y=32, line_dash="dot")
 
 
 @app.callback(Output("fcst-temp", "figure"), Input("loc-selection", "value"))
-def update_fcst(value, tcol="tempF"):
-    fcst_df = make_forecast_df(locations[value])
-    if tcol not in fcst_df.columns:
-        raise KeyError(
-            f"Temperature column '{tcol}' not found in make_forecast_df() output data frame!"
-        )
+def update_fcst(value, xcol="startTime", tcol="tempF"):
+    """Update the forecast temperatures graph when location is changed.
+    This function calls make_forecast_df(), which hits the NOAA API endpoint
+    and return a data frame with 'startTime' and  'tempF' columns."""
 
+    fcst_df = make_forecast_df(locations[value])
     return px.line(
         fcst_df,
         x="startTime",
         y=tcol,
-        labels={"startTime": "", tcol: "Temperature (F)"},
+        labels={xcol: "", tcol: "Temperature (F)"},
         title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")

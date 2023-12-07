@@ -244,6 +244,48 @@ def parse_windspeed(speeds):
     return pd.Series([speed_int, unit], index=["windSpeedInt", "windSpeedUnit"])
 
 
+def parse_elev(elev_value, unit_code):
+    """NOAA API can return elevation data (for observations, forecasts, etc)
+    in a variety of formats. This function centralizes the logic of parsing
+    these responses into an elevation string that can be displayed.
+
+    Parameters
+    ----------
+    elev_value : pd.Series
+        Series (can be of length 1) with elevation.value from NOAA
+    unit_code : pd.Series
+        Series of identical length with elevation.unitCode from NOAA
+
+    Returns
+    -------
+    elev_ft : np.float
+        Elevation value in feet
+    elev_str : string
+        Elevation string, e.g. "8709 feet"
+    """
+
+    # Handle different input types
+    if isinstance(elev_value, pd.Series):
+        if isinstance(unit_code, pd.Series):
+            if len(elev_value) != len(unit_code):
+                raise ValueError("Elevation value and unit series must be of equal length!")
+            ev = elev_value.iloc[0]
+            uc = unit_code.iloc[0]
+        else:
+            raise ValueError("Both inputs must be pd.Series!")
+    else:
+        ev = elev_value
+        uc = unit_code
+
+    if uc == "m" or uc == "wmoUnit:m":
+        elev_ft = 3.28 * ev
+    elif uc == "ft" or uc == "feet":
+        elev_ft = ev
+    else:
+        raise ValueError("Cannot parse elevation unit code!")
+    return elev_ft, f"{elev_ft:.0f} feet"
+
+
 def make_forecast_df(loc):
     """Make a data frame from the NOAA API hourly forecast for a location
 
@@ -260,13 +302,7 @@ def make_forecast_df(loc):
     """
 
     fcst_json = loc.get_forecast(full=True)
-    elev_value = fcst_json["elevation"]["value"]
-    if (uc := fcst_json["elevation"]["unitCode"]) == "m" or uc == "wmoUnit:m":
-        elev_ft = 3.28 * elev_value
-    elif uc == "ft" or uc == "feet":
-        elev_ft = elev_value
-    else:
-        raise ValueError("Cannot parse elevation.unitCode!")
+    elev_ft, _ = parse_elev(fcst_json["elevation"]["value"], fcst_json["elevation"]["unitCode"])
     obs_df_full = pd.DataFrame(pd.json_normalize(fcst_json["periods"]))
     obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime)
     obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime)
