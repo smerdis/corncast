@@ -35,7 +35,7 @@ card = dbc.Card(
 
 
 def render_dashboard():
-    return html.Div(
+    return dbc.Container(
         [
             dbc.Row(dbc.Col(html.H1("Corn Forecast"))),
             dbc.Row(
@@ -53,7 +53,8 @@ def render_dashboard():
             ),
             dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
             dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
-        ]
+        ],
+        fluid=True,
     )
 
 
