@@ -3,9 +3,11 @@ from dash import Input, Output, html, dcc
 
 import plotly.express as px
 
+import pandas as pd
+
 from datetime import datetime, timedelta
 
-from corncast import Location, make_forecast_df, make_obs_df, parse_elev
+from corncast import Location, make_forecast_df, make_obs_df, parse_elev, analyze_obs
 
 from app import app
 
@@ -89,6 +91,7 @@ def render_dashboard():
             dbc.Row(
                 dbc.Col([dbc.Stack([card for _ in range(3)], direction="horizontal")])
             ),
+            dcc.Store(id="fcst-agg"),
         ],
         fluid=True,
     )
@@ -125,7 +128,7 @@ def update_obs(value, xcol="datehour", tcol="tempF"):
 def update_fcst(value, xcol="startTime", tcol="tempF"):
     """Update the forecast temperatures graph when location is changed.
     This function calls make_forecast_df(), which hits the NOAA API endpoint
-    and return a data frame with 'startTime' and  'tempF' columns."""
+    and returns a data frame with 'startTime' and  'tempF' columns."""
 
     fcst_df = make_forecast_df(locations[value])
     return px.line(
@@ -135,3 +138,26 @@ def update_fcst(value, xcol="startTime", tcol="tempF"):
         labels={xcol: "", tcol: "Temperature (F)"},
         title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")
+
+
+@app.callback(Output("fcst-agg", "data"), Input("loc-selection", "value"))
+def analyze_hourly_fcst(value):
+    """Analyze hourly forecast returned by NOAA when the location is changed.
+    This function calls make_forecast_df(), which hits the NOAA API endpoint
+    Now we want to analyze that data frame and store the analyses in fcst-agg
+    Many other functions will then update and populate different cards."""
+
+    period = "date"
+    fmt = "%m-%d"
+    fcst_df = make_forecast_df(locations[value])
+    fcst_agg = fcst_df.groupby([period], as_index=False).apply(analyze_obs)
+    fcst_agg["datetime_str"] = fcst_agg[period].dt.strftime(fmt)
+    return fcst_agg.to_json(date_format="iso", orient="split")
+
+
+@app.callback(Output("precip-fcst", "children"), Input("fcst-agg", "data"))
+def update_precip_fcst(data):
+    return dbc.Table.from_dataframe(
+        pd.read_json(data, orient="split")[["datetime_str", "prob_precip"]],
+        bordered=True,
+    )
