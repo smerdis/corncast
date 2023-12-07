@@ -29,7 +29,8 @@ card = dbc.Card(
                 dbc.Button("Go somewhere", color="primary"),
             ]
         ),
-    ]
+    ],
+    className="m-sm p-sm",
 )
 
 
@@ -86,7 +87,7 @@ def update_obs(value, tcol="tempF"):
         y=tcol,
         labels={"datehour": "", tcol: "Temperature (F)"},
         title=f"Observations at {station_name.split('/')[-1]} ({elev_str})",
-    ).add_hline(y=32, line_dash="dot")#.update_xaxes(visible=False)
+    ).add_hline(y=32, line_dash="dot")
 
 
 @app.callback(Output("fcst-temp", "figure"), Input("loc-selection", "value"))
