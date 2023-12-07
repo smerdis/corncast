@@ -15,6 +15,23 @@ locs = [
 ]
 locations = {l.name: l for l in locs}
 
+card = dbc.Card(
+    [
+        dbc.CardHeader("Card header"),
+        dbc.CardBody(
+            [
+                html.H4("Card title", className="card-title"),
+                html.P(
+                    "Some quick example text to build on the card title and "
+                    "make up the bulk of the card's content.",
+                    className="card-text",
+                ),
+                dbc.Button("Go somewhere", color="primary"),
+            ]
+        ),
+    ]
+)
+
 
 def render_dashboard():
     return html.Div(
@@ -33,23 +50,8 @@ def render_dashboard():
                 ],
                 # align="center",
             ),
-            dbc.Row(
-                [
-                    dbc.Card(
-                        dbc.CardBody(
-                            [
-                                html.H4("Card title", className="card-title"),
-                                html.P(
-                                    "Some quick example text to build on the card title and "
-                                    "make up the bulk of the card's content.",
-                                    className="card-text",
-                                ),
-                                dbc.Button("Go somewhere", color="primary"),
-                            ]
-                        ),
-                    )
-                ]
-            ),
+            dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
+            dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
         ]
     )
 
@@ -82,9 +84,9 @@ def update_obs(value, tcol="tempF"):
         hour_means,
         x="datehour",
         y=tcol,
-        labels={"datehour": "Date", tcol: "Temperature (F)"},
+        labels={"datehour": "", tcol: "Temperature (F)"},
         title=f"Observations at {station_name.split('/')[-1]} ({elev_str})",
-    ).add_hline(y=32, line_dash="dot")
+    ).add_hline(y=32, line_dash="dot")#.update_xaxes(visible=False)
 
 
 @app.callback(Output("fcst-temp", "figure"), Input("loc-selection", "value"))
@@ -99,6 +101,6 @@ def update_fcst(value, tcol="tempF"):
         fcst_df,
         x="startTime",
         y=tcol,
-        labels={"startTime": "Date", tcol: "Temperature (F)"},
+        labels={"startTime": "", tcol: "Temperature (F)"},
         title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")
