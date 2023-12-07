@@ -33,6 +33,38 @@ card = dbc.Card(
     className="m-sm p-sm",
 )
 
+wind_card = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                html.H4("Winds", className="card-title"),
+                html.P(
+                    "Information about wind speed and direction",
+                    className="card-text",
+                    id="wind-fcst",
+                ),
+            ]
+        ),
+    ],
+    className="w-50 m-sm p-sm",
+)
+
+precip_card = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                html.H4("Precipitation", className="card-title"),
+                html.P(
+                    "Information about future precipitation",
+                    className="card-text",
+                    id="precip-fcst",
+                ),
+            ]
+        ),
+    ],
+    className="w-50 m-sm p-sm",
+)
+
 
 def render_dashboard():
     return dbc.Container(
@@ -51,8 +83,12 @@ def render_dashboard():
                 ],
                 # align="center",
             ),
-            dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
-            dbc.Row([dbc.Stack([card for _ in range(3)], direction="horizontal")]),
+            dbc.Row(
+                dbc.Col([dbc.Stack([wind_card, precip_card], direction="horizontal")])
+            ),
+            dbc.Row(
+                dbc.Col([dbc.Stack([card for _ in range(3)], direction="horizontal")])
+            ),
         ],
         fluid=True,
     )
