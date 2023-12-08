@@ -51,32 +51,15 @@ summary_card = dbc.Card(
     className="w-50 m-sm p-sm",
 )
 
-
-wind_card = dbc.Card(
+card3 = dbc.Card(
     [
         dbc.CardBody(
             [
-                html.H4("Winds", className="card-title"),
+                html.H4("Daily forecast", className="card-title"),
                 html.P(
-                    "Information about wind speed and direction",
+                    "Summary of conditions over the next week",
                     className="card-text",
-                    id="wind-fcst",
-                ),
-            ]
-        ),
-    ],
-    className="w-50 m-sm p-sm",
-)
-
-precip_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4("Probability of Precipitation (%)", className="card-title"),
-                html.P(
-                    "Information about future precipitation",
-                    className="card-text",
-                    id="precip-fcst",
+                    id="daily-fcst",
                 ),
             ]
         ),
@@ -103,7 +86,14 @@ def render_dashboard():
                 # align="center",
             ),
             dbc.Row(
-                dbc.Col([dbc.Stack([summary_card, wind_card, precip_card], direction="horizontal")])
+                dbc.Col(
+                    [
+                        dbc.Stack(
+                            [summary_card, card3],
+                            direction="horizontal",
+                        )
+                    ]
+                )
             ),
             dbc.Row(
                 dbc.Col([dbc.Stack([card for _ in range(3)], direction="horizontal")])
@@ -172,10 +162,28 @@ def analyze_hourly_fcst(value):
     return fcst_agg.to_json(date_format="iso", orient="split")
 
 
-@app.callback(Output("precip-fcst", "children"), Input("fcst-agg", "data"))
+@app.callback(Output("daily-fcst", "children"), Input("fcst-agg", "data"))
 def update_precip_fcst(data):
-    return dbc.Table.from_dataframe(
-        pd.read_json(data, orient="split")[["datetime_str", "prob_precip"]],
-        bordered=True,
-        header=False,
+    df = pd.read_json(data, orient="split")[["datetime_str", "prob_precip", "cycle"]]
+    df["cycle_str"] = df["cycle"].astype(str)
+    out_df = df[["datetime_str", "prob_precip", "cycle_str"]]
+    table_header = [
+        html.Thead(
+            html.Tr(
+                [
+                    html.Th("Date"),
+                    html.Th("Chance of Precipitation (%)"),
+                    html.Th("Corn Cycle?"),
+                ]
+            )
+        )
+    ]
+    out_table_body = dbc.Table.from_dataframe(
+        out_df,
+    ).children[
+        1:
+    ]  # first child element is the header with default column names, we don't want it
+
+    return dbc.Table(
+        table_header + out_table_body, striped=True, className="text-md-center"
     )

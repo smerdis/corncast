@@ -268,7 +268,9 @@ def parse_elev(elev_value, unit_code):
     if isinstance(elev_value, pd.Series):
         if isinstance(unit_code, pd.Series):
             if len(elev_value) != len(unit_code):
-                raise ValueError("Elevation value and unit series must be of equal length!")
+                raise ValueError(
+                    "Elevation value and unit series must be of equal length!"
+                )
             ev = elev_value.iloc[0]
             uc = unit_code.iloc[0]
         else:
@@ -302,7 +304,9 @@ def make_forecast_df(loc):
     """
 
     fcst_json = loc.get_forecast(full=True)
-    elev_ft, _ = parse_elev(fcst_json["elevation"]["value"], fcst_json["elevation"]["unitCode"])
+    elev_ft, _ = parse_elev(
+        fcst_json["elevation"]["value"], fcst_json["elevation"]["unitCode"]
+    )
     obs_df_full = pd.DataFrame(pd.json_normalize(fcst_json["periods"]))
     obs_df_full.startTime = pd.to_datetime(obs_df_full.startTime)
     obs_df_full.endTime = pd.to_datetime(obs_df_full.endTime)
