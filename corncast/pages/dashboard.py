@@ -35,6 +35,23 @@ card = dbc.Card(
     className="m-sm p-sm",
 )
 
+summary_card = dbc.Card(
+    [
+        dbc.CardBody(
+            [
+                html.H4("Summary", className="card-title"),
+                html.P(
+                    "Overview of conditions",
+                    className="card-text",
+                    id="summary",
+                ),
+            ]
+        ),
+    ],
+    className="w-50 m-sm p-sm",
+)
+
+
 wind_card = dbc.Card(
     [
         dbc.CardBody(
@@ -55,7 +72,7 @@ precip_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                html.H4("Precipitation", className="card-title"),
+                html.H4("Probability of Precipitation (%)", className="card-title"),
                 html.P(
                     "Information about future precipitation",
                     className="card-text",
@@ -86,7 +103,7 @@ def render_dashboard():
                 # align="center",
             ),
             dbc.Row(
-                dbc.Col([dbc.Stack([wind_card, precip_card], direction="horizontal")])
+                dbc.Col([dbc.Stack([summary_card, wind_card, precip_card], direction="horizontal")])
             ),
             dbc.Row(
                 dbc.Col([dbc.Stack([card for _ in range(3)], direction="horizontal")])
@@ -160,4 +177,5 @@ def update_precip_fcst(data):
     return dbc.Table.from_dataframe(
         pd.read_json(data, orient="split")[["datetime_str", "prob_precip"]],
         bordered=True,
+        header=False,
     )
