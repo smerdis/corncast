@@ -164,7 +164,9 @@ def analyze_hourly_fcst(value):
 
 @app.callback(Output("daily-fcst", "children"), Input("fcst-agg", "data"))
 def update_precip_fcst(data):
-    df = pd.read_json(data, orient="split")[["datetime_str", "prob_precip", "mean_wind", "cycle"]]
+    df = pd.read_json(data, orient="split")[
+        ["datetime_str", "prob_precip", "mean_wind", "cycle"]
+    ]
     df["cycle_str"] = df["cycle"].astype(str)
     out_df = df[["datetime_str", "prob_precip", "mean_wind", "cycle_str"]]
     table_header = [

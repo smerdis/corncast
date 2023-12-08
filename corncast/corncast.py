@@ -157,8 +157,8 @@ def analyze_obs(obs_df, tcol="tempF"):
     if "probabilityOfPrecipitation.value" in obs_df.columns:  # forecast (future) data
         prob_precip = obs_df["probabilityOfPrecipitation.value"].max()
         summary["prob_precip"] = prob_precip
-    #summary["max_wind"] = obs_df['windSpeedInt'].max()
-    summary["mean_wind"] = obs_df['windSpeedInt'].mean().astype('int')
+    # summary["max_wind"] = obs_df['windSpeedInt'].max()
+    summary["mean_wind"] = obs_df["windSpeedInt"].mean().astype("int")
     return pd.Series(summary)
 
 
