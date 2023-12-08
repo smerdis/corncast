@@ -164,15 +164,16 @@ def analyze_hourly_fcst(value):
 
 @app.callback(Output("daily-fcst", "children"), Input("fcst-agg", "data"))
 def update_precip_fcst(data):
-    df = pd.read_json(data, orient="split")[["datetime_str", "prob_precip", "cycle"]]
+    df = pd.read_json(data, orient="split")[["datetime_str", "prob_precip", "mean_wind", "cycle"]]
     df["cycle_str"] = df["cycle"].astype(str)
-    out_df = df[["datetime_str", "prob_precip", "cycle_str"]]
+    out_df = df[["datetime_str", "prob_precip", "mean_wind", "cycle_str"]]
     table_header = [
         html.Thead(
             html.Tr(
                 [
                     html.Th("Date"),
                     html.Th("Chance of Precipitation (%)"),
+                    html.Th("Mean sustained windspeed"),
                     html.Th("Corn Cycle?"),
                 ]
             )
