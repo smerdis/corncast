@@ -1,5 +1,6 @@
 dash==2.14.2
 dash-bootstrap-components==1.5.0
+geopandas==0.14.1
 gunicorn==21.2.0
 noaa-sdk==0.1.21
 pandas==2.1.3
