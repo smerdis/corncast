@@ -13,7 +13,7 @@ from app import app
 from plots.snotel import snotel_plot
 
 locs = [
-    Location("Mt. Rose Summit", 39.314, -119.917),
+    Location("Mt. Rose Summit", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
     Location("Mt. Shasta - Bunny Flat", 41.353, -122.234),
 ]
 locations = {l.name: l for l in locs}

@@ -21,7 +21,7 @@ class Location(object):
         list of SNOTEL stations that represent this Location
     """
 
-    def __init__(self, name, lat, lon):
+    def __init__(self, name, lat, lon, snotels=[]):
         """Create a Location.
 
         Parameters
@@ -40,7 +40,7 @@ class Location(object):
         self.noaa = NOAA(
             user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True
         )
-        self._snotels = []
+        self._snotels = snotels
 
     def __str__(self):
         return f"{self.name} ({self._lat:.3f}, {self._lon:.3f})"

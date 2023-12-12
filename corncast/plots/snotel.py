@@ -9,19 +9,24 @@ from datetime import date, timedelta, datetime
 
 
 def snotel_plot(loc):
+    """Plot data from SNOTEL sensors accessed via CUAHSI server."""
     wsdl_url = "https://hydroportal.cuahsi.org/Snotel/cuahsi_1_1.asmx?WSDL"
-    stations = loc.get_snotels()
+    client = zeep.Client(wsdl=wsdl_url)
 
-    client = zeep.Client(wsdl=wsdl_url, plugins=[zeep.plugins.HistoryPlugin()])
+    stations = loc.get_snotels()
+    if len(stations) == 0:
+        # deal with no SNOTEL station info for this location
+        return {}
+    if len(stations) == 1:
+        site_code = stations[0]  # e.g. "SNOTEL:652_NV_SNTL"
+    else:
+        site_code = stations[0]  # TODO figure out how to do this bit
+
     namespaces = {"cuahsi": "http://www.cuahsi.org/waterML/1.1/"}
     ns = namespaces["cuahsi"]
-    site_code = "SNOTEL:652_NV_SNTL"
     response = client.service["GetSiteInfo"](site_code)
-
     out = xmltodict.parse(response, process_namespaces=True, namespaces=namespaces)
     resp_dict = out[f"{ns}:sitesResponse"]
-    # output of next code is something like
-    # "{'@http://www.w3.org/2001/XMLSchema-instance:type': 'LatLonPointType', 'http://www.cuahsi.org/waterML/1.1/:latitude': '39.315731048583984', 'http://www.cuahsi.org/waterML/1.1/:longitude': '-119.89472961425781'}"
     coords = resp_dict[f"{ns}:site"][f"{ns}:siteInfo"][f"{ns}:geoLocation"][
         f"{ns}:geogLocation"
     ]
@@ -36,12 +41,7 @@ def snotel_plot(loc):
         client.service["GetValues"](site_code, var_code, start_date, end_date, "")
     )
     val_list = vals["timeSeriesResponse"]["timeSeries"]["values"]["value"]
-    most_recent_val = val_list[-1]
     val_series = pd.to_numeric([v["#text"] for v in val_list])
-    date_str = date.strftime(
-        datetime.strptime(most_recent_val["@dateTime"], "%Y-%m-%dT%H:%M:%S"), "%m-%d"
-    )
-
     fig = go.Figure()
     fig.add_trace(
         go.Scatter(x=pd.date_range(start=start_date, end=end_date), y=val_series)
