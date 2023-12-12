@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from corncast import Location, make_forecast_df, make_obs_df, parse_elev, analyze_obs
 
 from app import app
+from plots.snotel import snotel_plot
 
 locs = [
     Location("Mt. Rose Summit", 39.314, -119.917),
@@ -35,16 +36,12 @@ card = dbc.Card(
     className="m-sm p-sm",
 )
 
-summary_card = dbc.Card(
+snowpack_card = dbc.Card(
     [
         dbc.CardBody(
             [
-                html.H4("Summary", className="card-title"),
-                html.P(
-                    "Overview of conditions",
-                    className="card-text",
-                    id="summary",
-                ),
+                html.H4("Snowpack", className="card-title"),
+                dcc.Graph(id="snotel-graph"),
             ]
         ),
     ],
@@ -89,14 +86,11 @@ def render_dashboard():
                 dbc.Col(
                     [
                         dbc.Stack(
-                            [summary_card, card3],
+                            [snowpack_card, card3],
                             direction="horizontal",
                         )
                     ]
                 )
-            ),
-            dbc.Row(
-                dbc.Col([dbc.Stack([card for _ in range(3)], direction="horizontal")])
             ),
             dcc.Store(id="fcst-agg"),
         ],
@@ -190,3 +184,10 @@ def update_precip_fcst(data):
     return dbc.Table(
         table_header + out_table_body, striped=True, className="text-md-center"
     )
+
+
+@app.callback(Output("snotel-graph", "figure"), Input("loc-selection", "value"))
+def update_snotel(value):
+    """Update snotel graph when location is changed."""
+
+    return snotel_plot(locations[value])
