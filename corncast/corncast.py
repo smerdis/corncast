@@ -17,6 +17,8 @@ class Location(object):
         longitude of location
     noaa : noaa_sdk.NOAA
         API wrapper object
+    snotels : list of strings
+        list of SNOTEL stations that represent this Location
     """
 
     def __init__(self, name, lat, lon):
@@ -38,9 +40,19 @@ class Location(object):
         self.noaa = NOAA(
             user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True
         )
+        self._snotels = []
 
     def __str__(self):
-        return f"{self.name} ({self._lat:.2f}, {self._lon:.2f})"
+        return f"{self.name} ({self._lat:.3f}, {self._lon:.3f})"
+
+    def lat(self):
+        return self._lat
+
+    def lon(self):
+        return self._lon
+
+    def get_snotels(self):
+        return self._snotels
 
     def get_obs(self, start, end):
         """Return weather observations nearest this location.
