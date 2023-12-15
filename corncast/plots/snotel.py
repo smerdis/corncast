@@ -3,7 +3,6 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
 import zeep
-from io import StringIO
 import xmltodict
 from datetime import date, timedelta, datetime
 
@@ -34,7 +33,7 @@ def snotel_plot(loc):
     lon = float(coords[f"{ns}:longitude"])
     elevation_m = float(resp_dict[f"{ns}:site"][f"{ns}:siteInfo"][f"{ns}:elevation_m"])
 
-    var_code = f"SNOTEL:SNWD_D"
+    var_code = f"SNOTEL:SNWD_D"  # Snow depth, daily
     end_date = date.today()
     start_date = end_date - timedelta(days=7)
     vals = xmltodict.parse(
@@ -44,10 +43,15 @@ def snotel_plot(loc):
     val_series = pd.to_numeric([v["#text"] for v in val_list])
     fig = go.Figure()
     fig.add_trace(
-        go.Scatter(x=pd.date_range(start=start_date, end=end_date), y=val_series)
+        go.Scatter(
+            x=pd.date_range(start=start_date, end=end_date),
+            y=val_series,
+            name="Snow Depth (in)",
+        )
     )
     fig.update_layout(
-        title=f"Snow Depth (in) at {site_code} (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)"
+        title=f"Snow Depth at {site_code} (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)",
+        yaxis_title=f"Snow Depth (in)",
     )
 
     return fig
