@@ -19,36 +19,6 @@ locs = [
 ]
 locations = {l.name: l for l in locs}
 
-card = dbc.Card(
-    [
-        dbc.CardHeader("Card header"),
-        dbc.CardBody(
-            [
-                html.H4("Card title", className="card-title"),
-                html.P(
-                    "Some quick example text to build on the card title and "
-                    "make up the bulk of the card's content.",
-                    className="card-text",
-                ),
-                dbc.Button("Go somewhere", color="primary"),
-            ]
-        ),
-    ],
-    className="m-sm p-sm",
-)
-
-snowpack_card = dbc.Card(
-    [
-        dbc.CardBody(
-            [
-                html.H4("Snowpack", className="card-title"),
-                dcc.Graph(id="snotel-graph"),
-            ]
-        ),
-    ],
-    className="w-50 m-sm p-sm",
-)
-
 card3 = dbc.Card(
     [
         dbc.CardBody(
@@ -62,37 +32,45 @@ card3 = dbc.Card(
             ]
         ),
     ],
-    className="w-50 m-sm p-sm",
+    className="m-sm p-sm",
 )
 
 
 def render_dashboard():
     return dbc.Container(
-        [
-            dbc.Row(dbc.Col(html.H1("Corn Forecast"))),
+        id="app-container",
+        children=[
+            dbc.Row([dbc.Col([html.H1("Corn Snow Monitoring Dashboard")])]),
             dbc.Row(
                 [
                     dbc.Col(
-                        dcc.Dropdown(
-                            list(locations), next(iter(locations)), id="loc-selection"
-                        ),
-                        width=2,
+                        [
+                            dcc.Dropdown(
+                                list(locations),
+                                next(iter(locations)),
+                                id="loc-selection",
+                            ),
+                        ]
                     ),
-                    dbc.Col(dcc.Graph(id="obs-temp"), width=5),
-                    dbc.Col(dcc.Graph(id="fcst-temp"), width=5),
-                ],
-                # align="center",
+                ]
             ),
             dbc.Row(
-                dbc.Col(
-                    [
-                        dbc.Stack(
-                            [snowpack_card, card3],
-                            direction="horizontal",
-                        )
-                    ]
-                )
+                [
+                    dbc.Col(
+                        [
+                            dcc.Graph(id="obs-temp"),
+                        ],
+                        xs=6,
+                    ),
+                    dbc.Col(
+                        [
+                            dcc.Graph(id="fcst-temp"),
+                        ],
+                        xs=6,
+                    ),
+                ]
             ),
+            dbc.Row([dbc.Col([dcc.Graph(id="snotel-graph")], xs=6), dbc.Col(card3)]),
             dcc.Store(id="fcst-agg"),
         ],
         fluid=True,
@@ -164,6 +142,7 @@ def update_precip_fcst(data):
     ]
     df["cycle_str"] = df["cycle"].astype(str)
     out_df = df[["datetime_str", "prob_precip", "mean_wind", "cycle_str"]]
+
     table_header = [
         html.Thead(
             html.Tr(
@@ -171,7 +150,7 @@ def update_precip_fcst(data):
                     html.Th("Date"),
                     html.Th("Chance of Precipitation (%)"),
                     html.Th("Mean sustained windspeed"),
-                    html.Th("Corn Cycle?"),
+                    html.Th("Freeze-thaw Cycle?"),
                 ]
             )
         )
