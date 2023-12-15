@@ -150,7 +150,7 @@ def update_precip_fcst(data):
                     html.Th("Date"),
                     html.Th("Chance of Precipitation (%)"),
                     html.Th("Mean sustained windspeed"),
-                    html.Th("Freeze-thaw Cycle?"),
+                    html.Th("Freeze-thaw cycle?"),
                 ]
             )
         )
