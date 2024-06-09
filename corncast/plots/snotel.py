@@ -8,7 +8,35 @@ from datetime import date, timedelta, datetime
 
 
 def snotel_plot(loc):
-    """Plot data from SNOTEL sensors accessed via CUAHSI server."""
+    """
+    Generates a plot of the snow depth at a SNOTEL station near a given location.
+
+    This function uses the SOAP service provided by CUAHSI to fetch the snow depth data.
+    It first fetches the site information using the GetSiteInfo service, and then fetches
+    the snow depth values for the past week using the GetValues service. The snow depth
+    values are then plotted on a line chart using Plotly.
+
+    Parameters
+    ----------
+    loc : Location
+        A Location object representing the location near which to find a SNOTEL station.
+
+    Returns
+    -------
+    go.Figure
+        A Plotly Figure object representing the snow depth plot. If no SNOTEL stations
+        are found near the given location, an empty dictionary is returned.
+
+    Raises
+    ------
+    zeep.exceptions.Fault
+        If there is a problem with the SOAP service or the provided site code.
+    xmltodict.expat.ExpatError
+        If there is a problem parsing the XML response from the SOAP service.
+    KeyError
+        If the expected data is not found in the SOAP service response.
+    """
+
     wsdl_url = "https://hydroportal.cuahsi.org/Snotel/cuahsi_1_1.asmx?WSDL"
     client = zeep.Client(wsdl=wsdl_url)
 
