@@ -329,7 +329,7 @@ def parse_windspeed(speeds):
     Returns
     -------
     pandas.Series
-        A Series with two elements: the numerical wind speed (as an integer) and the unit (as a string).
+        A Series with two elements, both strings: the numerical wind speed (integer value) and the unit.
         The index of the Series is ['windSpeedInt', 'windSpeedUnit'].
 
     Raises
