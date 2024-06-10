@@ -23,3 +23,8 @@ class CorncastTests(unittest.TestCase):
         self.assertEqual(parse_windspeed("0 kmph")["windSpeedUnit"], "wmoUnit:km_h-1")
         self.assertEqual(parse_windspeed("0 kmh")["windSpeedInt"], "0")
         self.assertEqual(parse_windspeed("0 kmh")["windSpeedUnit"], "wmoUnit:km_h-1")
+        self.assertRaises(ValueError, parse_windspeed, "10")
+        self.assertRaises(ValueError, parse_windspeed, "10mph")
+        self.assertRaises(ValueError, parse_windspeed, "10 kt")
+        self.assertRaises(ValueError, parse_windspeed, "0")
+        self.assertRaises(ValueError, parse_windspeed, "")
