@@ -5,33 +5,37 @@ from noaa_sdk import NOAA
 
 
 class Location(object):
-    """Class that represents a location in the world.
+    """
+    Class that represents a location in the world.
 
     Attributes
     ----------
-    name : string
-        name of location
+    name : str
+        Name of the location.
     lat : float
-        latitude of location
+        Latitude of the location.
     lon : float
-        longitude of location
+        Longitude of the location.
     noaa : noaa_sdk.NOAA
-        API wrapper object
-    snotels : list of strings
-        list of SNOTEL stations that represent this Location
+        API wrapper object for NOAA.
+    snotels : list of str
+        List of SNOTEL stations that represent this Location.
     """
 
     def __init__(self, name, lat, lon, snotels=[]):
-        """Create a Location.
+        """
+        Initialize a Location object.
 
         Parameters
         ----------
-        name : string
-            name of location
+        name : str
+            Name of the location.
         lat : float
-            latitude of location
+            Latitude of the location.
         lon : float
-            longitude of location
+            Longitude of the location.
+        snotels : list of str, optional
+            List of SNOTEL stations that represent this Location, by default [].
         """
 
         self.name = name
@@ -43,26 +47,64 @@ class Location(object):
         self._snotels = snotels
 
     def __str__(self):
+        """
+        Return a string representation of the Location object.
+
+        Returns
+        -------
+        str
+            String representation of the Location object.
+        """
         return f"{self.name} ({self._lat:.3f}, {self._lon:.3f})"
 
     def lat(self):
+        """
+        Get the latitude of the location.
+
+        Returns
+        -------
+        float
+            Latitude of the location.
+        """
         return self._lat
 
     def lon(self):
+        """
+        Get the longitude of the location.
+
+        Returns
+        -------
+        float
+            Longitude of the location.
+        """
         return self._lon
 
     def get_snotels(self):
+        """
+        Get the list of SNOTEL stations that represent this Location.
+
+        Returns
+        -------
+        list of str
+            List of SNOTEL stations that represent this Location.
+        """
         return self._snotels
 
     def get_obs(self, start, end):
-        """Return weather observations nearest this location.
+        """
+        Return weather observations nearest this location for a given time period.
 
         Parameters
         ----------
         start : datetime
-            beginning of time period we want observations from
+            Beginning of the time period for which we want observations.
         end : datetime
-            end of time period we want observations from
+            End of the time period for which we want observations.
+
+        Returns
+        -------
+        dict
+            Weather observations nearest this location for the given time period.
         """
 
         return self.noaa.get_observations_by_lat_lon(
@@ -73,13 +115,19 @@ class Location(object):
         )
 
     def get_forecast(self, full=False):
-        """Return weather forecast nearest this location.
+        """
+        Return weather forecast nearest this location.
 
         Parameters
         ----------
-        full : bool
-            Return the full 'properties' dict returned by NOAA (default False)
-            If false, return only the 'periods' element of this dict
+        full : bool, optional
+            If True, return the full 'properties' dict returned by NOAA, by default False.
+            If False, return only the 'periods' element of this dict.
+
+        Returns
+        -------
+        dict or list of dict
+            Weather forecast nearest this location. The type of the return value depends on the 'full' parameter.
         """
 
         res = self.noaa.points_forecast(self._lat, self._lon, type="forecastHourly")
@@ -109,18 +157,22 @@ class Location(object):
 
 
 def reduce_obs(obs_df):
-    """Given a data frame of weather observations from the NOAA API,
-    return only the columns we want for further analysis.
+    """
+    Reduces the given DataFrame of weather observations from the NOAA API by retaining only the relevant columns for further analysis.
+
+    The function keeps the 'station' and 'timestamp' columns,
+    as well as any columns that contain the words 'temperature', 'dewpoint', 'precipitation', 'wind', or 'elevation'.
+    It discards any columns that contain the word 'qualityControl'.
 
     Parameters
     ----------
     obs_df : pandas.DataFrame
-        Data Frame wrapping raw observations from NOAA API
+        DataFrame containing raw weather observations from the NOAA API. Each row represents a single observation, and each column represents a different attribute of the observation.
 
     Returns
     -------
-    df_reduced : pandas.DataFrame
-        Data Frame with all the same rows and only the relevant columns retained
+    pandas.DataFrame
+        A new DataFrame that contains all the same rows as the input DataFrame, but only the relevant columns. The columns are in the same order as in the input DataFrame.
     """
 
     keep_cols = ["station", "timestamp"]
@@ -143,17 +195,27 @@ def reduce_obs(obs_df):
 
 
 def analyze_obs(obs_df, tcol="tempF"):
-    """Analyze a period of observations in Fahrenheit and compute summary stats.
+    """
+    Analyze a DataFrame of weather observations and compute summary statistics.
+
+    This function calculates whether there was a freeze/thaw cycle (i.e., the temperature went both above and below 32 degrees Fahrenheit),
+    the total precipitation over the last 3 hours, the maximum probability of precipitation, and the mean wind speed.
+    It returns these statistics as a pandas Series.
 
     Parameters
     ----------
     obs_df : pandas.DataFrame
-        Data Frame of hourly temperatures in Fahrenheit
+        DataFrame of hourly weather observations. Each row represents a single observation, and each column represents a different attribute of the observation.
+        The DataFrame must contain a column for the temperature, and it may optionally contain columns for the precipitation over the last 3 hours, the probability of precipitation, and the wind speed.
+
+    tcol : str, optional
+        The name of the column in `obs_df` that contains the temperature data, by default "tempF".
 
     Returns
     -------
-    summary : pandas.Series
-        Series of summary statistics with label as index
+    pandas.Series
+        A Series of summary statistics. The index of the Series is the names of the statistics, and the values are the calculated statistics.
+        The names of the statistics are 'cycle', 'obs_precip', 'obs_precip_iszero', 'prob_precip', and 'mean_wind'.
     """
 
     summary = dict()
@@ -175,29 +237,38 @@ def analyze_obs(obs_df, tcol="tempF"):
 
 
 def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
-    """Make data frame of weather station obs for a location from NOAA API
+    """
+    Fetches weather station observations for a specific location from the NOAA API and formats them into a DataFrame.
+
+    This function fetches the observations, reduces the DataFrame to only the relevant columns,
+    converts the timestamps to datetime objects, ensures that all observations are from the same station,
+    and creates a new column for the temperature in Fahrenheit.
 
     Parameters
     ----------
     loc : Location
-        Location to fetch observations for
+        The location to fetch observations for.
     start : datetime
-        beginning of time period we want observations from
+        The beginning of the time period to fetch observations from.
     end : datetime
-        end of time period we want observations from
-    obs_tcol : str
-        name of column containing observed temperature data, optional.
-        If not provided, assume 'temperature.value'
-        ^ This is returned by json_normalize() with 'temperature.unitCode'
-        If 'temperature.unitCode' is not 'wmoUnit:degC' or 'C',
-        obs_tcol assumed to be in Fahrenheit
-        Otherwise, it is converted to F
+        The end of the time period to fetch observations from.
+    obs_tcol : str, optional
+        The name of the column in the fetched data that contains the observed temperature data.
+        If not provided, it defaults to 'temperature.value'.
+        If the 'temperature.unitCode' column is not 'wmoUnit:degC' or 'C', the temperature is assumed to be in Fahrenheit.
+        Otherwise, it is converted to Fahrenheit.
 
     Returns
     -------
-    out_df : pandas.DataFrame
-        Data Frame in expected format for hourly data.
-        'tempF' contains the observed temperature in Fahrenheit
+    pandas.DataFrame
+        A DataFrame of the fetched observations. The DataFrame contains columns for:
+        the timestamp, the date, the hour of the day, the nearest 12-hour period, the nearest 6-hour period, and the temperature in Fahrenheit.
+        Each row represents a single observation.
+
+    Raises
+    ------
+    AssertionError
+        If the fetched observations are from more than one station.
     """
 
     with warnings.catch_warnings():
@@ -232,17 +303,28 @@ def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
 
 
 def parse_windspeed(speeds):
-    """Parse the wind speeds returned by NOAA forecast API
+    """
+    Parse the wind speeds returned by NOAA forecast API and split them into numerical speed and unit.
+
+    This function takes a string representation of wind speed with its unit (e.g., "25 mph") and splits it into the numerical speed and the unit.
+    The numerical speed is converted to an integer, and the unit is kept as a string.
+    If the input string does not contain a recognizable unit, the function raises a ValueError.
 
     Parameters
     ----------
-    speeds : pd.Series
-        Series of wind speeds, each like "25 mph"
+    speeds : str
+        A string representation of wind speed with its unit, e.g., "25 mph".
 
     Returns
     -------
-    out : pandas.Series
-        Series with wind speed (integer, e.g. 25) and unit (e.g. "mph")
+    pandas.Series
+        A Series with two elements: the numerical wind speed (as an integer) and the unit (as a string).
+        The index of the Series is ['windSpeedInt', 'windSpeedUnit'].
+
+    Raises
+    ------
+    ValueError
+        If the input string does not contain a recognizable unit ("mph", "kmh", or "kmph").
     """
 
     if "mph" in speeds:
@@ -260,23 +342,34 @@ def parse_windspeed(speeds):
 
 
 def parse_elev(elev_value, unit_code):
-    """NOAA API can return elevation data (for observations, forecasts, etc)
-    in a variety of formats. This function centralizes the logic of parsing
-    these responses into an elevation string that can be displayed.
+    """
+    Parses elevation data from the NOAA API and converts it to feet.
+
+    This function takes elevation data and its unit code as input, either as individual values or as pandas Series.
+    It converts the elevation data to feet if necessary, and returns the converted elevation as both a float and a formatted string.
 
     Parameters
     ----------
-    elev_value : pd.Series
-        Series (can be of length 1) with elevation.value from NOAA
-    unit_code : pd.Series
-        Series of identical length with elevation.unitCode from NOAA
+    elev_value : float or pd.Series
+        The elevation data from the NOAA API.
+        If a Series, all values must be identical and the Series must be of the same length as `unit_code`.
+    unit_code : str or pd.Series
+        The unit code for the elevation data from the NOAA API.
+        If a Series, all values must be identical and the Series must be of the same length as `elev_value`.
 
     Returns
     -------
-    elev_ft : np.float
-        Elevation value in feet
-    elev_str : string
-        Elevation string, e.g. "8709 feet"
+    elev_ft : float
+        The elevation data converted to feet.
+    elev_str : str
+        The elevation data converted to feet and formatted as a string, e.g., "8709 feet".
+
+    Raises
+    ------
+    ValueError
+        If `elev_value` and `unit_code` are Series of different lengths,
+        if only one of them is a Series,
+        or if `unit_code` is not a recognized unit ("m", "wmoUnit:m", "ft", or "feet").
     """
 
     # Handle different input types
@@ -304,18 +397,38 @@ def parse_elev(elev_value, unit_code):
 
 
 def make_forecast_df(loc):
-    """Make a data frame from the NOAA API hourly forecast for a location
+    """
+    Fetches the NOAA API hourly forecast for a location and formats it into a DataFrame.
+
+    This function does the following:
+    - fetches the forecast
+    - parses the elevation data
+    - normalizes the forecast data into a DataFrame
+    - converts the start and end times to datetime objects
+    - parses the wind speed data
+
+    and selects the relevant columns to keep.
+    It also creates new columns for the temperature in Fahrenheit
+    and the nearest date, 12-hour period, and 6-hour period.
 
     Parameters
     ----------
     loc : Location
-        Location to fetch observations for
+        The location to fetch the forecast for.
 
     Returns
     -------
     out_df : pandas.DataFrame
-        Data Frame in expected format for hourly data
-        'tempF' contains the observed temperature in Fahrenheit
+        A DataFrame in the expected format for hourly data.
+        The DataFrame contains columns for:
+        - the start time, end time, and whether it's daytime
+        - the temperature and the temperature unit
+        - the wind speed, the parsed wind speed, the wind speed unit, the wind direction
+        - the short forecast
+        - any columns related to dewpoint, relative humidity, or probability of precipitation
+        - the temperature in Fahrenheit
+        - the date, the nearest 12-hour period, the nearest 6-hour period, and the elevation in feet.
+        Each row represents a single hour of the forecast.
     """
 
     fcst_json = loc.get_forecast(full=True)
