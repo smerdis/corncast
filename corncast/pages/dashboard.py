@@ -45,6 +45,19 @@ card3 = dbc.Card(
 
 
 def render_dashboard():
+    """
+    Render the dashboard layout.
+
+    This function creates a layout for the dashboard using Dash Bootstrap Components (dbc).
+    The layout includes a title, a dropdown for location selection, two graphs for observation and forecast temperatures,
+    a graph for snow telemetry data, and a storage component for forecast aggregation.
+
+    Returns
+    -------
+    dbc.Container
+        A dbc.Container object that represents the layout of the dashboard.
+        The container is fluid, meaning it will take up the full width of the viewport.
+    """
     return dbc.Container(
         id="app-container",
         children=[
@@ -114,9 +127,32 @@ def update_obs(value, xcol="datehour", tcol="tempF"):
 
 @app.callback(Output("fcst-temp", "figure"), Input("loc-selection", "value"))
 def update_fcst(value, xcol="startTime", tcol="tempF"):
-    """Update the forecast temperatures graph when location is changed.
-    This function calls make_forecast_df(), which hits the NOAA API endpoint
-    and returns a data frame with 'startTime' and  'tempF' columns."""
+    """
+    Update the observed temperatures graph when the location is changed.
+
+    This function retrieves weather observations from the NOAA API for the selected location,
+    groups the observations by hour, calculates the mean temperature for each hour, and
+    returns a plotly express line graph of these hourly mean temperatures.
+
+    Parameters
+    ----------
+    value : str
+        The selected location. This should be a key in the `locations` dictionary.
+    xcol : str, optional
+        The name of the column in the dataframe to use for the x-axis of the graph. Default is "datehour".
+    tcol : str, optional
+        The name of the column in the dataframe to use for the y-axis of the graph. Default is "tempF".
+
+    Returns
+    -------
+    plotly.graph_objs._figure.Figure
+        A plotly express line graph of hourly mean temperatures at the selected location.
+
+    Notes
+    -----
+    This function calls `make_obs_df()` which hits the NOAA API endpoint
+    and returns a dataframe of observations from the nearest station.
+    """
 
     fcst_df = make_forecast_df(locations[value])
     return px.line(
@@ -130,11 +166,30 @@ def update_fcst(value, xcol="startTime", tcol="tempF"):
 
 @app.callback(Output("fcst-agg", "data"), Input("loc-selection", "value"))
 def analyze_hourly_fcst(value):
-    """Analyze hourly forecast returned by NOAA when the location is changed.
-    This function calls make_forecast_df(), which hits the NOAA API endpoint
-    Now we want to analyze that data frame and store the analyses in fcst-agg
-    Many other functions will then update and populate different cards."""
+    """
+    Analyze hourly forecast data and return it as JSON.
 
+    This function retrieves the forecast data for the selected location from the NOAA API,
+    groups the data by date, applies the `analyze_obs` function to each group, and
+    returns the aggregated data as a JSON string.
+
+    Parameters
+    ----------
+    value : str
+        The selected location. This should be a key in the `locations` dictionary.
+
+    Returns
+    -------
+    str
+        The aggregated forecast data as a JSON string. The JSON string is in "split" orientation,
+        and dates are formatted as ISO 8601 strings.
+
+    Notes
+    -----
+    This function calls `make_forecast_df()` which hits the NOAA API endpoint
+    and returns a dataframe of forecast data from the nearest station.
+    The `analyze_obs` function is applied to each group of data by date.
+    """
     period = "date"
     fmt = "%m-%d"
     fcst_df = make_forecast_df(locations[value])
@@ -145,6 +200,28 @@ def analyze_hourly_fcst(value):
 
 @app.callback(Output("daily-fcst", "children"), Input("fcst-agg", "data"))
 def update_precip_fcst(data):
+    """
+    Update the precipitation forecast table when new data is received.
+
+    This function takes the aggregated forecast data as a JSON string, converts it to a dataframe,
+    selects the necessary columns, and creates a new table with these columns.
+    The table is then returned as a dbc.Table object.
+
+    Parameters
+    ----------
+    data : str
+        The aggregated forecast data as a JSON string. The JSON string should be in "split" orientation,
+        and dates should be formatted as ISO 8601 strings.
+
+    Returns
+    -------
+    dbc.Table
+        A dbc.Table object that represents the updated precipitation forecast table. The table is striped and centered.
+
+    Notes
+    -----
+    The table includes the following columns: "Date", "Chance of Precipitation (%)", "Mean sustained windspeed", and "Freeze-thaw cycle?".
+    """
     df = pd.read_json(data, orient="split")[
         ["datetime_str", "prob_precip", "mean_wind", "cycle"]
     ]
@@ -176,6 +253,25 @@ def update_precip_fcst(data):
 
 @app.callback(Output("snotel-graph", "figure"), Input("loc-selection", "value"))
 def update_snotel(value):
-    """Update snotel graph when location is changed."""
+    """
+    Update the SNOTEL graph when the location is changed.
 
+    This function retrieves the SNOTEL data for the selected location from the `locations` dictionary,
+    and returns a plotly graph of this data.
+
+    Parameters
+    ----------
+    value : str
+        The selected location. This should be a key in the `locations` dictionary.
+
+    Returns
+    -------
+    plotly.graph_objs._figure.Figure
+        A plotly graph of the SNOTEL data at the selected location.
+
+    Notes
+    -----
+    This function calls `snotel_plot()` which retrieves the SNOTEL data for the selected location
+    and returns a plotly graph of this data.
+    """
     return snotel_plot(locations[value])
