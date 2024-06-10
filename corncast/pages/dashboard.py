@@ -274,4 +274,7 @@ def update_snotel(value):
     This function calls `snotel_plot()` which retrieves the SNOTEL data for the selected location
     and returns a plotly graph of this data.
     """
-    return snotel_plot(locations[value])
+    plot = snotel_plot(locations[value])
+    if plot == {}:
+        return px.line(title="No SNOTEL data available")
+    return plot
