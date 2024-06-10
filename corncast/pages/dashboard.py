@@ -13,9 +13,17 @@ from app import app
 from plots.snotel import snotel_plot
 
 locs = [
+    Location("Donner Pass", 39.317, -120.33, snotels=["SNOTEL:428_CA_SNTL"]),
     Location("Mt. Rose Summit", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
-    Location("Mt. Shasta - Bunny Flat", 41.353, -122.234),
-    Location("Mt. Hood - Timberline", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
+    Location("Mt. Shasta", 41.353, -122.234),
+    Location("Mt. Hood", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
+    Location("Mt. Baker", 48.856, -121.674, snotels=["SNOTEL:909_WA_SNTL"]),
+    Location(
+        "Mt. Rainier - Paradise", 46.785, -121.735, snotels=["SNOTEL:679_WA_SNTL"]
+    ),
+    Location("Mt. Bachelor", 43.979, -121.683, snotels=["SNOTEL:815_OR_SNTL"]),
+    Location("Sonora Pass", 38.325, -119.647, snotels=["SNOTEL:574_CA_SNTL"]),
+    Location("Tahoe City", 39.171, -120.144, snotels=["SNOTEL:848_CA_SNTL"]),
 ]
 locations = {l.name: l for l in locs}
 
