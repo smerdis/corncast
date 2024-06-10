@@ -338,7 +338,7 @@ def parse_windspeed(speeds):
         If the input string does not contain a recognizable unit ("mph", "kmh", or "kmph").
     """
 
-    if "mph" in speeds:
+    if " mph" in speeds:
         speed_int = speeds.split(" mph")[0]
         unit = "mph"
     elif "kmh" in speeds:
