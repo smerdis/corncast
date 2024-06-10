@@ -92,21 +92,32 @@ class Location(object):
 
     def get_obs(self, start, end):
         """
-        Return weather observations nearest this location for a given time period.
+        Return a generator yielding weather observations nearest this location for a given time period.
+
+        This function calls the `get_observations_by_lat_lon` method of the `noaa` object,
+        passing in the latitude and longitude of the current instance, and the start and end times formatted as strings.
+        The `get_observations_by_lat_lon` method is expected to return a generator that yields dictionaries containing weather observations.
 
         Parameters
         ----------
         start : datetime
-            Beginning of the time period for which we want observations.
+            The datetime representing the beginning of the time period for which we want observations.
+            This is converted to a string in the format "YYYY-MM-DD HH:MM:SS" before being passed to the `get_observations_by_lat_lon` method.
         end : datetime
-            End of the time period for which we want observations.
+            The datetime representing the end of the time period for which we want observations.
+            This is converted to a string in the format "YYYY-MM-DD HH:MM:SS" before being passed to the `get_observations_by_lat_lon` method.
 
         Returns
         -------
-        dict
-            Weather observations nearest this location for the given time period.
+        generator
+            A generator that yields dictionaries. Each dictionary represents weather observations nearest this location for a specific time within the given time period.
+
+        Notes
+        -----
+        The `get_observations_by_lat_lon` method of the `noaa` object is expected to use the `yield` keyword, hence this function returns a generator.
         """
 
+        # NOAA API function relies on yield(), so returns a Generator
         return self.noaa.get_observations_by_lat_lon(
             self._lat,
             self._lon,
