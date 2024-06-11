@@ -13,17 +13,27 @@ from app import app
 from plots.snotel import snotel_plot
 
 locs = [
-    Location("Donner Pass", 39.317, -120.33, snotels=["SNOTEL:428_CA_SNTL"]),
-    Location("Mt. Rose Summit", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
-    Location("Mt. Shasta", 41.353, -122.234),
-    Location("Mt. Hood", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
-    Location("Mt. Baker", 48.856, -121.674, snotels=["SNOTEL:909_WA_SNTL"]),
+    Location("Crater Lake, OR", 42.896, -122.134, snotels=["SNOTEL:1000_OR_SNTL"]),
+    Location("Donner Pass, CA", 39.317, -120.33, snotels=["SNOTEL:428_CA_SNTL"]),
+    Location("Mt. Rose Summit, NV", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
+    Location("Mt. Shasta, CA", 41.353, -122.234),
+    Location("Mt. Hood, OR", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
+    Location("Mt. Baker, WA", 48.856, -121.674, snotels=["SNOTEL:909_WA_SNTL"]),
     Location(
-        "Mt. Rainier - Paradise", 46.785, -121.735, snotels=["SNOTEL:679_WA_SNTL"]
+        "Mt. Rainier - Paradise, WA", 46.785, -121.735, snotels=["SNOTEL:679_WA_SNTL"]
     ),
-    Location("Mt. Bachelor", 43.979, -121.683, snotels=["SNOTEL:815_OR_SNTL"]),
-    Location("Sonora Pass", 38.325, -119.647, snotels=["SNOTEL:574_CA_SNTL"]),
-    Location("Tahoe City", 39.171, -120.144, snotels=["SNOTEL:848_CA_SNTL"]),
+    Location("Mt. Bachelor, OR", 43.979, -121.683, snotels=["SNOTEL:815_OR_SNTL"]),
+    Location(
+        "North Cascades National Park, WA",
+        48.530,
+        -120.990,
+        snotels=["SNOTEL:817_WA_SNTL"],
+    ),
+    Location("Snoqualmie Pass, WA", 47.391, -121.400, snotels=["SNOTEL:672_WA_SNTL"]),
+    Location("Sonora Pass, CA", 38.325, -119.647, snotels=["SNOTEL:574_CA_SNTL"]),
+    Location("Stevens Pass, WA", 47.750, -121.090, snotels=["SNOTEL:791_WA_SNTL"]),
+    Location("Tahoe City, CA", 39.171, -120.144, snotels=["SNOTEL:848_CA_SNTL"]),
+    Location("White Pass, WA", 46.639, -121.389, snotels=["SNOTEL:863_WA_SNTL"]),
 ]
 locations = {l.name: l for l in locs}
 
