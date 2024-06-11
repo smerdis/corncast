@@ -19,6 +19,9 @@ locs = [
     Location("Mt. Bachelor, OR", 43.979, -121.683, snotels=["SNOTEL:815_OR_SNTL"]),
     Location("Mt. Baker, WA", 48.856, -121.674, snotels=["SNOTEL:909_WA_SNTL"]),
     Location("Mt. Hood, OR", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
+    Location(
+        "Mt. Rainier - Paradise, WA", 46.785, -121.735, snotels=["SNOTEL:679_WA_SNTL"]
+    ),
     Location("Mt. Rose Summit, NV", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
     Location("Mt. Shasta, CA", 41.353, -122.234),
     Location(
