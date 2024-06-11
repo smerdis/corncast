@@ -3,6 +3,7 @@ from dash import Input, Output, html, dcc
 
 import plotly.express as px
 
+from io import StringIO
 import pandas as pd
 
 from datetime import datetime, timedelta
@@ -232,7 +233,7 @@ def update_precip_fcst(data):
     -----
     The table includes the following columns: "Date", "Chance of Precipitation (%)", "Mean sustained windspeed", and "Freeze-thaw cycle?".
     """
-    df = pd.read_json(data, orient="split")[
+    df = pd.read_json(StringIO(data), orient="split")[
         ["datetime_str", "prob_precip", "mean_wind", "cycle"]
     ]
     df["cycle_str"] = df["cycle"].astype(str)
