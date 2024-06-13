@@ -90,19 +90,31 @@ def render_dashboard():
                 [
                     dbc.Col(
                         [
-                            dcc.Graph(id="obs-temp"),
+                            dcc.Graph(id="obs-temp", config={"displayModeBar": False}),
                         ],
                         xs=6,
                     ),
                     dbc.Col(
                         [
-                            dcc.Graph(id="fcst-temp"),
+                            dcc.Graph(id="fcst-temp", config={"displayModeBar": False}),
                         ],
                         xs=6,
                     ),
                 ]
             ),
-            dbc.Row([dbc.Col([dcc.Graph(id="snotel-graph")], xs=6), dbc.Col(card3)]),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dcc.Graph(
+                                id="snotel-graph", config={"displayModeBar": False}
+                            )
+                        ],
+                        xs=6,
+                    ),
+                    dbc.Col(card3),
+                ]
+            ),
             dcc.Store(id="fcst-agg"),
         ],
         fluid=True,
@@ -127,13 +139,18 @@ def update_obs(value, xcol="datehour", tcol="tempF"):
 
     # group by hour, take the mean of temp readings within that hour, plot
     hour_means = obs_df.groupby([xcol])[tcol].mean().reset_index()
-    return px.line(
+    fig = px.line(
         hour_means,
         x=xcol,
         y=tcol,
         labels={xcol: "", tcol: "Temperature (F)"},
         title=f"<b>Observations</b> at {station_name.split('/')[-1]} ({elev_str})",
     ).add_hline(y=32, line_dash="dot")
+
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+
+    return fig
 
 
 @app.callback(Output("fcst-temp", "figure"), Input("loc-selection", "value"))
@@ -166,13 +183,18 @@ def update_fcst(value, xcol="startTime", tcol="tempF"):
     """
 
     fcst_df = make_forecast_df(locations[value])
-    return px.line(
+    fig = px.line(
         fcst_df,
         x="startTime",
         y=tcol,
         labels={xcol: "", tcol: "Temperature (F)"},
         title=f"<b>Forecast</b> for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")
+
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+
+    return fig
 
 
 @app.callback(Output("fcst-agg", "data"), Input("loc-selection", "value"))

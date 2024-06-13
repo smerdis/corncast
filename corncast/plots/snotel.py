@@ -82,4 +82,7 @@ def snotel_plot(loc):
         yaxis_title=f"Snow Depth (in)",
     )
 
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+
     return fig
