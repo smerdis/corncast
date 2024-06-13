@@ -1,5 +1,5 @@
 # CornCast: Corn snow forecasting tool
-There are many forecasting tools for those who love powder. But what about corn? I aim to fill the gap.
+There are many forecasting tools for those who love powder. But what about [corn](https://opensnow.com/news/post/spring-skiing-explained)? I aim to fill the gap.
 
 CornCast fetches and displays all relevant information for spring skiing/riding in one place. At the moment, the layout is a simple four-panel (2 x 2) dashboard:
 
