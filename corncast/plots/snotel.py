@@ -78,7 +78,7 @@ def snotel_plot(loc):
         )
     )
     fig.update_layout(
-        title=f"Snow Depth at {site_code} (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)",
+        title=f"<b>Snow Depth</b> at {site_code} (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)",
         yaxis_title=f"Snow Depth (in)",
     )
 

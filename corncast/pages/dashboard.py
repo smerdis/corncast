@@ -132,7 +132,7 @@ def update_obs(value, xcol="datehour", tcol="tempF"):
         x=xcol,
         y=tcol,
         labels={xcol: "", tcol: "Temperature (F)"},
-        title=f"Observations at {station_name.split('/')[-1]} ({elev_str})",
+        title=f"<b>Observations</b> at {station_name.split('/')[-1]} ({elev_str})",
     ).add_hline(y=32, line_dash="dot")
 
 
@@ -171,7 +171,7 @@ def update_fcst(value, xcol="startTime", tcol="tempF"):
         x="startTime",
         y=tcol,
         labels={xcol: "", tcol: "Temperature (F)"},
-        title=f"Forecast for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
+        title=f"<b>Forecast</b> for {locations[value]} ({fcst_df['elev_ft'].iloc[0]:.0f} feet)",
     ).add_hline(y=32, line_dash="dot")
 
 
