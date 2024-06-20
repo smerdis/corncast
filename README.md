@@ -1,4 +1,4 @@
-# CornCast: Corn snow forecasting tool
+# CornCast: Corn snow forecasting dashboard
 There are many forecasting tools for those who love powder. But what about [corn](https://opensnow.com/news/post/spring-skiing-explained)? I aim to fill the gap.
 
 CornCast fetches and displays all relevant information for spring skiing/riding in one place. Try it out [here](http://54.215.120.88:7000/).
