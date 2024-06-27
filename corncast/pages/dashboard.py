@@ -17,6 +17,7 @@ locs = [
     Location("Carson Pass, CA", 38.690, -120.000, snotels=["SNOTEL:1067_CA_SNTL"]),
     Location("Crater Lake, OR", 42.896, -122.134, snotels=["SNOTEL:1000_OR_SNTL"]),
     Location("Donner Pass, CA", 39.317, -120.33, snotels=["SNOTEL:428_CA_SNTL"]),
+    Location("Echo Summit, CA", 38.850, -120.08, snotels=["SNOTEL:463_CA_SNTL"]),
     Location("Mt. Bachelor, OR", 43.979, -121.683, snotels=["SNOTEL:815_OR_SNTL"]),
     Location("Mt. Baker, WA", 48.856, -121.674, snotels=["SNOTEL:909_WA_SNTL"]),
     Location("Mt. Hood, OR", 45.331, -121.711, snotels=["SNOTEL:651_OR_SNTL"]),
