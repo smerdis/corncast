@@ -1,6 +1,7 @@
 import pandas as pd
 import warnings
 from datetime import datetime, timedelta
+from tzfpy import get_tz
 from noaa_sdk import NOAA
 
 
@@ -20,6 +21,8 @@ class Location(object):
         API wrapper object for NOAA.
     snotels : list of str
         List of SNOTEL stations that represent this Location.
+    tz : str
+        Timezone of the location. e.g. 'America/Los_Angeles'
     """
 
     def __init__(self, name, lat, lon, snotels=[]):
@@ -36,6 +39,8 @@ class Location(object):
             Longitude of the location.
         snotels : list of str, optional
             List of SNOTEL stations that represent this Location, by default [].
+        tz : str
+            Timezone of the location. e.g. 'America/Los_Angeles'
         """
 
         self.name = name
@@ -45,6 +50,7 @@ class Location(object):
             user_agent="CornCast testing <arjmukerji@gmail.com>", show_uri=True
         )
         self._snotels = snotels
+        self.tz = get_tz(lon, lat)
 
     def __str__(self):
         """
@@ -121,8 +127,8 @@ class Location(object):
         return self.noaa.get_observations_by_lat_lon(
             self._lat,
             self._lon,
-            start.strftime("%Y-%m-%d %H:%M:%S"),
-            end.strftime("%Y-%m-%d %H:%M:%S"),
+            start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            end.strftime("%Y-%m-%dT%H:%M:%SZ"),
         )
 
     def get_forecast(self, full=False):
@@ -296,6 +302,7 @@ def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
     obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp, utc=True)
     obs_df_reduced["date"] = obs_df_reduced.timestamp.dt.floor("1D")
     obs_df_reduced["datehour"] = obs_df_reduced.timestamp.dt.floor("1H")
+    obs_df_reduced["datehour_local"] = obs_df_reduced.datehour.dt.tz_convert(loc.tz)
     obs_df_reduced["date_nearest12"] = obs_df_reduced.timestamp.dt.floor("12H")
     obs_df_reduced["date_nearest6"] = obs_df_reduced.timestamp.dt.floor("6H")
     # ensure we are only returning obs from one station

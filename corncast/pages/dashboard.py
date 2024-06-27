@@ -6,7 +6,7 @@ import plotly.express as px
 from io import StringIO
 import pandas as pd
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from corncast import Location, make_forecast_df, make_obs_df, parse_elev, analyze_obs
 
@@ -132,12 +132,12 @@ def render_dashboard():
 
 
 @app.callback(Output("obs-temp", "figure"), Input("loc-selection", "value"))
-def update_obs(value, xcol="datehour", tcol="tempF"):
+def update_obs(value, xcol="datehour_local", tcol="tempF"):
     """Update observed temperatures graph when location is changed.
     This function calls make_obs_df() which hits the NOAA API endpoint
     and returns a dataframe of observations from the nearest station."""
 
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     obs_period = timedelta(days=5)
     start = now - obs_period
     end = now
