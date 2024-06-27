@@ -46,8 +46,9 @@ def snotel_plot(loc):
         return {}
     if len(stations) == 1:
         site_code = stations[0]  # e.g. "SNOTEL:652_NV_SNTL"
+        site_num = site_code.split(":")[1].split("_")[0]  # e.g. "652"
     else:
-        return {}  # If no SNOTEL stations provided, return an empty dictionary
+        return {}  # If >1 SNOTEL stations provided, return an empty dictionary
 
     namespaces = {"cuahsi": "http://www.cuahsi.org/waterML/1.1/"}
     ns = namespaces["cuahsi"]
@@ -78,7 +79,7 @@ def snotel_plot(loc):
         )
     )
     fig.update_layout(
-        title=f"<b>Snow Depth</b> at {site_code} (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)",
+        title=f'<b>Snow Depth</b> at <a href="https://wcc.sc.egov.usda.gov/nwcc/site?sitenum={site_num}">{site_code}</a> (({lat:.3f}, {lon:.3f}), {3.28*elevation_m:.0f} ft)',
         yaxis_title=f"Snow Depth (in)",
     )
 
