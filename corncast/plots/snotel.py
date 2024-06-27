@@ -47,7 +47,7 @@ def snotel_plot(loc):
     if len(stations) == 1:
         site_code = stations[0]  # e.g. "SNOTEL:652_NV_SNTL"
     else:
-        site_code = stations[0]  # TODO figure out how to do this bit
+        return {}  # If no SNOTEL stations provided, return an empty dictionary
 
     namespaces = {"cuahsi": "http://www.cuahsi.org/waterML/1.1/"}
     ns = namespaces["cuahsi"]
