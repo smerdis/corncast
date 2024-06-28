@@ -1,7 +1,7 @@
 import unittest
 import pandas as pd
-from datetime import datetime
-from corncast import Location, parse_windspeed, parse_elev
+from datetime import datetime, timezone, timedelta
+from corncast import Location, parse_windspeed, parse_elev, make_obs_df
 
 
 class CorncastTests(unittest.TestCase):
@@ -51,6 +51,25 @@ class CorncastTests(unittest.TestCase):
         unit_code = pd.Series(["m"])
         with self.assertRaises(ValueError):
             parse_elev(elev_value, unit_code)
+
+
+class MakeObsDfTests(unittest.TestCase):
+    def setUp(self):
+        # Create a dummy Location object for testing
+        self.location = Location(
+            "Carson Pass, CA", 38.690, -120.000, snotels=["SNOTEL:1067_CA_SNTL"]
+        )
+
+    def test_make_obs_df_multiple_observations(self):
+        # Test with multiple observations
+        now = datetime.now(timezone.utc)
+        obs_period = timedelta(days=5)
+        start = now - obs_period
+        end = now
+        obs_df = make_obs_df(self.location, start, end)
+        self.assertGreater(len(obs_df), 1)
+        self.assertEqual(obs_df["station"].nunique(), 1)
+        self.assertEqual(obs_df["timestamp"].nunique(), len(obs_df))
 
 
 if __name__ == "__main__":
