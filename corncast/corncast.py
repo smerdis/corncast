@@ -298,10 +298,13 @@ def make_obs_df(loc, start, end, obs_tcol="temperature.value"):
         )
     # get rid of extraneous columns and rows with no temperature value
     obs_df_reduced = reduce_obs(obs_df_full).dropna(axis=0, subset=[obs_tcol])
-    # observations come in local time at the station
+    # observations come in UTC
     obs_df_reduced.timestamp = pd.to_datetime(obs_df_reduced.timestamp, utc=True)
+    # round to nearest day
     obs_df_reduced["date"] = obs_df_reduced.timestamp.dt.floor("1D")
+    # round to nearest hour
     obs_df_reduced["datehour"] = obs_df_reduced.timestamp.dt.floor("1H")
+    # convert to local time - this variable will be used for display
     obs_df_reduced["datehour_local"] = obs_df_reduced.datehour.dt.tz_convert(loc.tz)
     obs_df_reduced["date_nearest12"] = obs_df_reduced.timestamp.dt.floor("12H")
     obs_df_reduced["date_nearest6"] = obs_df_reduced.timestamp.dt.floor("6H")
