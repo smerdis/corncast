@@ -409,7 +409,7 @@ def parse_elev(elev_value, unit_code):
         uc = unit_code
 
     if uc == "m" or uc == "wmoUnit:m":
-        elev_ft = 3.28 * ev
+        elev_ft = 3.28084 * ev
     elif uc == "ft" or uc == "feet":
         elev_ft = ev
     else:
