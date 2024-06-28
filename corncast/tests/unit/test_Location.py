@@ -10,17 +10,19 @@ class LocationTests(unittest.TestCase):
     """
 
     def setUp(self):
-        self.location = Location("New York", 40.7128, -74.0060)
+        self.location = Location(
+            "Carson Pass, CA", 38.690, -120.000, snotels=["SNOTEL:1067_CA_SNTL"]
+        )
 
     def test_init(self):
-        self.assertEqual(self.location.name, "New York")
-        self.assertEqual(self.location.lat(), 40.7128)
-        self.assertEqual(self.location.lon(), -74.0060)
-        self.assertEqual(self.location.get_snotels(), [])
-        self.assertEqual(self.location.tz, "America/New_York")
+        self.assertEqual(self.location.name, "Carson Pass, CA")
+        self.assertEqual(self.location.lat(), 38.690)
+        self.assertEqual(self.location.lon(), -120.000)
+        self.assertEqual(self.location.get_snotels(), ["SNOTEL:1067_CA_SNTL"])
+        self.assertEqual(self.location.tz, "America/Los_Angeles")
 
     def test_str(self):
-        self.assertEqual(str(self.location), "New York (40.713, -74.006)")
+        self.assertEqual(str(self.location), "Carson Pass, CA (38.690, -120.000)")
 
     def test_get_obs(self):
         start = datetime(2022, 1, 1)
