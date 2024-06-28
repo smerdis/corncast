@@ -122,8 +122,10 @@ class DfTests(unittest.TestCase):
         self.assertEqual(forecast_df["windSpeedInt"][0], 10)
         self.assertEqual(forecast_df["windSpeedUnit"][0], "mph")
         self.assertEqual(forecast_df["windDirection"][0], "N")
+        self.assertEqual(forecast_df["windSpeedInt"][1], 5)
         self.assertEqual(forecast_df["shortForecast"][0], "Clear")
         self.assertEqual(forecast_df["tempF"][0], 32)
+        self.assertEqual(forecast_df["tempF"][1], 30)
         self.assertEqual(forecast_df["date"][0].strftime("%Y-%m-%d"), "2022-01-01")
         self.assertEqual(forecast_df["elev_ft"][0], 3280.84)
 
