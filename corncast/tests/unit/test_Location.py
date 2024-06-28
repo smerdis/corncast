@@ -17,6 +17,7 @@ class LocationTests(unittest.TestCase):
         self.assertEqual(self.location.lat(), 40.7128)
         self.assertEqual(self.location.lon(), -74.0060)
         self.assertEqual(self.location.get_snotels(), [])
+        self.assertEqual(self.location.tz, "America/New_York")
 
     def test_str(self):
         self.assertEqual(str(self.location), "New York (40.713, -74.006)")
