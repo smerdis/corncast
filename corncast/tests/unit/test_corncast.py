@@ -70,6 +70,9 @@ class MakeObsDfTests(unittest.TestCase):
         self.assertGreater(len(obs_df), 1)
         self.assertEqual(obs_df["station"].nunique(), 1)
         self.assertEqual(obs_df["timestamp"].nunique(), len(obs_df))
+        self.assertTrue((obs_df["timestamp"] >= start).all())
+        self.assertTrue((obs_df["timestamp"] <= end).all())
+        self.assertTrue((obs_df["tempF"] >= -500).all())
 
 
 if __name__ == "__main__":
