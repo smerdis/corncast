@@ -10,4 +10,4 @@ At the moment, the layout is a simple four-panel (2 x 2) dashboard:
  * **Bottom left (Snow Depth)**: Current snow depth reported by representative [SNOTEL](https://www.nrcs.usda.gov/wps/portal/wcc/home/aboutUs/monitoringPrograms/automatedSnowMonitoring/) sensor. If there is no representative SNOTEL sensor for a location (e.g. Mt. Shasta), this graph is left blank. SNOTEL data is collected by [NRCS](https://www.nrcs.usda.gov/) and accessed via SOAP API from [CUAHSI](https://www.cuahsi.org/).
  * **Bottom right (Tabular Forecast)**: Daily summary of quantities relevant to corn formation. For the moment, this includes 1) freeze-thaw cycle, 2) chance of precipitation, and 3) wind speed.
 
-CornCast is built with [noaa-sdk](https://github.com/paulokuong/noaa) and [Plotly Dash](https://dash.plotly.com/). 
+CornCast is built with [noaa-sdk](https://github.com/paulokuong/noaa), [pandas](https://pandas.pydata.org/), and [Plotly Dash](https://dash.plotly.com/). Fast timezone lookups are courtesy of [tzfpy](https://github.com/ringsaturn/tzfpy).
