@@ -14,13 +14,15 @@ from app import app
 from plots.snotel import snotel_plot
 
 locs = [
+    Location(
+        "Big Cottonwood Canyon, UT", 40.600, -111.58, snotels=["SNOTEL:366_UT_SNTL"]
+    ),
+    Location("Blewett Pass, WA", 47.350, -120.68, snotels=["SNOTEL:352_WA_SNTL"]),
     Location("Carson Pass, CA", 38.690, -120.000, snotels=["SNOTEL:1067_CA_SNTL"]),
     Location("Crater Lake, OR", 42.896, -122.134, snotels=["SNOTEL:1000_OR_SNTL"]),
     Location("Donner Pass, CA", 39.317, -120.33, snotels=["SNOTEL:428_CA_SNTL"]),
     Location("Echo Summit, CA", 38.850, -120.08, snotels=["SNOTEL:463_CA_SNTL"]),
-    Location(
-        "Big Cottonwood Canyon, UT", 40.600, -111.58, snotels=["SNOTEL:366_UT_SNTL"]
-    ),
+    Location("Hurricane Ridge, WA", 47.940, -123.43, snotels=["SNOTEL:974_WA_SNTL"]),
     Location(
         "Little Cottonwood Canyon, UT", 40.570, -111.66, snotels=["SNOTEL:766_UT_SNTL"]
     ),
