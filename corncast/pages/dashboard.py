@@ -42,6 +42,7 @@ locs = [
         snotels=["SNOTEL:817_WA_SNTL"],
     ),
     Location("Ruby Mountains, NV", 40.640, -115.38, snotels=["SNOTEL:570_NV_SNTL"]),
+    Location("Santiam Pass, OR", 44.420, -121.86, snotels=["SNOTEL:526_OR_SNTL"]),
     Location("Snoqualmie Pass, WA", 47.391, -121.400, snotels=["SNOTEL:672_WA_SNTL"]),
     Location("Sonora Pass, CA", 38.325, -119.647, snotels=["SNOTEL:574_CA_SNTL"]),
     Location("Stevens Pass, WA", 47.750, -121.090, snotels=["SNOTEL:791_WA_SNTL"]),
