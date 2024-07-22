@@ -35,6 +35,7 @@ locs = [
     ),
     Location("Mt. Rose Summit, NV", 39.314, -119.917, snotels=["SNOTEL:652_NV_SNTL"]),
     Location("Mt. Shasta, CA", 41.353, -122.234),
+    Location("Mt. St. Helens, WA", 46.16, -122.18, snotels=["SNOTEL:1012_WA_SNTL"]),
     Location(
         "North Cascades National Park, WA",
         48.530,
